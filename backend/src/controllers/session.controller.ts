@@ -89,6 +89,19 @@ const fetchAllSessions = async (req: Request, res: Response) => {
     }
     const sessions = await prisma.parkingSession.findMany({
       where: whereCondition,
+      include: {
+        slot: {
+          select: {
+            number: true,
+          },
+        },
+        payment: {
+          select: {
+            amount: true,
+            method: true,
+          },
+        },
+      },
       skip:
         page && limit
           ? (parseInt(page as string) - 1) * parseInt(limit as string)
@@ -160,6 +173,19 @@ const fetchSessionsByUser = async (req: Request, res: Response) => {
       where: {
         user: user,
       },
+      include: {
+        slot: {
+          select: {
+            number: true,
+          },
+        },
+        payment: {
+          select: {
+            amount: true,
+            method: true,
+          },
+        },
+      },
       skip:
         page && limit
           ? (parseInt(page as string) - 1) * parseInt(limit as string)
@@ -215,7 +241,7 @@ const getSessionFee = async (req: Request, res: Response) => {
       user: `${session.user.firstName} ${session.user.lastName}`,
       vehicle_plate_number: session.plateNumber,
       parking_hours: hours,
-     fee: `$${fee}`,
+      fee: `$${fee}`,
     });
   } catch (error) {
     return ServerResponse.error(res, "Error occurred", { error });

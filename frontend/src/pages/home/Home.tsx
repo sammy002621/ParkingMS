@@ -3,7 +3,8 @@ import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import { CommonContext } from "@/context";
-import { getBooks } from "@/services/book";
+import { handlePayment } from "@/services/payment";
+import { getSessions, getUserSessions } from "@/services/sessions";
 import { format } from "date-fns";
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import React, { useContext, useEffect, useState } from "react";
@@ -17,60 +18,146 @@ const Home: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(PAGE_SIZES[0]);
   const [searchKey, setSearchKey] = useState<string>("");
-  const [isModalOpen, setIsModalOpen] = useState<boolean>(false); // State for modal visibility
-  const [isModalClosed, setIsModalClosed] = useState<boolean>(false); // Track if modal is closed
-  const { user, books, setBooks, setMeta, meta } = useContext(CommonContext);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalClosed, setIsModalClosed] = useState<boolean>(false);
+  const { user, sessions, setSessions, setMeta, meta } =
+    useContext(CommonContext);
 
   const columns: DataTableColumn[] = [
     {
-      accessor: "id",
-      title: "#",
+      accessor: "slot.number",
+      title: "Parking Slot ",
       sortable: true,
       sortKey: "id",
     },
     {
       accessor: "name",
-      title: "Name",
+      title: "Entry time",
       sortable: true,
       sortKey: "name",
+      render: ({ createdAt }) => (
+        <span>
+          {format(new Date(createdAt as string), "MMM dd, yyyy, hh:mm a")}
+        </span>
+      ),
     },
     {
-      accessor: "author",
-      title: "Author",
+      accessor: "exitTime",
+      title: "Exit time",
       sortable: true,
+      render: ({ exitTime }: any) =>
+        exitTime ? (
+          <span>{format(new Date(exitTime), "MMM dd, yyyy , hh:mm a")}</span>
+        ) : (
+          <span className="text-gray-500 italic">Still in parking</span>
+        ),
     },
     {
-      accessor: "publisher",
-      title: "Publisher",
+      accessor: "paymentStatus",
+      title: "status",
+      render: ({ paymentStatus }) => (
+        <span
+          className={`px-3 py-1 rounded-full text-white text-sm font-semibold ${
+            paymentStatus === "PAID" ? "bg-green-600" : "bg-yellow-500"
+          }`}
+        >
+          {paymentStatus === "PAID" ? "Paid" : "Not paid yet"}
+        </span>
+      ),
     },
     {
-      accessor: "publicationYear",
-      title: "Publication Year",
+      accessor: "payment.amount",
+      title: "Amount",
+      render: ({ payment }: any) => {
+        const amount = payment?.amount;
+        return typeof amount === "number" ? (
+          <span>${amount.toFixed(2)}</span>
+        ) : (
+          <span className="text-red-500 italic">Not paid</span>
+        );
+      },
     },
+    {
+      accessor: "plateNumber",
+      title: "car plate number",
+    },
+    {
+      accessor: "isExited",
+      title: "still in parking",
+      render: ({ isExited }) => <span>{isExited ? "No" : "Yes"}</span>,
+    },
+
     {
       accessor: "subject",
-      title: "Subject",
-    },
-    {
-      accessor: "createdAt",
-      title: "Created At",
-      sortable: true,
-      render: ({ createdAt }) => (
-        <span>{format(new Date(createdAt as string), "MMM dd, yyyy")}</span>
+      title: "Action",
+      render: (row) => (
+        <div className="flex gap-2">
+          <button
+            // onClick={() => handleView(row)}
+            className="bg-blue-500 text-white px-3 py-1 rounded"
+          >
+            View
+          </button>
+          {!row.paymentStatus || row.paymentStatus === "PENDING" ? (
+            <button
+              onClick={() => handlePayment(row)}
+              className="bg-green-500 text-white px-5 py-1 rounded"
+            >
+              Pay
+            </button>
+          ) : null}
+        </div>
       ),
     },
   ];
 
-  useEffect(() => {
-    getBooks({ page, limit, setLoading, setMeta, setBooks, searchKey });
-    if (isModalClosed) {
-      getBooks({ page, limit, setLoading, setMeta, setBooks, searchKey });
-      setIsModalClosed(false);
-    }
-  }, [isModalClosed, page, limit, searchKey, setLoading, setMeta, setBooks]);
-
   const userSlice = useSelector((state: any) => state.userSlice);
   const role: string = userSlice.user.role;
+  useEffect(() => {
+    if (role === "ADMIN") {
+      getSessions({ page, limit, setLoading, setMeta, setSessions, searchKey });
+    } else {
+      getUserSessions({
+        page,
+        limit,
+        setLoading,
+        setMeta,
+        setSessions,
+        searchKey: "createdAt",
+      });
+    }
+    if (isModalClosed) {
+      if (role === "ADMIN") {
+        getSessions({
+          page,
+          limit,
+          setLoading,
+          setMeta,
+          setSessions,
+          searchKey: "createdAt",
+        });
+      } else {
+        getUserSessions({
+          page,
+          limit,
+          setLoading,
+          setMeta,
+          setSessions,
+          searchKey: "createdAt",
+        });
+      }
+      setIsModalClosed(false);
+    }
+  }, [
+    isModalClosed,
+    page,
+    limit,
+    searchKey,
+    setLoading,
+    setMeta,
+    setSessions,
+    role,
+  ]);
 
   return (
     <div className="w-full flex min-h-screen">
@@ -88,16 +175,14 @@ const Home: React.FC = () => {
             <div className="w-full justify-end sm:justify-between flex mb-6 items-center">
               <div>
                 <span className="hidden sm:flex my-8 text-xl">
-                  Books in PMS
+                  your recently sessions
                 </span>
-                {role === "ADMIN" ? (
-                  <button
-                    className="text-white bg-primary-blue rounded py-2 px-8 text-lg"
-                    onClick={() => setIsModalOpen(true)}
-                  >
-                    Create book{" "}
-                  </button>
-                ) : null}
+                <button
+                  className="text-white bg-primary-blue rounded py-2 px-8 text-lg"
+                  onClick={() => setIsModalOpen(true)}
+                >
+                  Enter in parking
+                </button>
               </div>
               <div className="bg-white w-11/12 dsm:w-10/12 sm:w-5/12 plg:w-3/12 rounded-3xl flex items-center relative h-12 justify-between">
                 <input
@@ -108,12 +193,12 @@ const Home: React.FC = () => {
                 />
                 <button
                   onClick={() => {
-                    getBooks({
+                    getSessions({
                       page,
                       limit,
                       setLoading,
                       setMeta,
-                      setBooks,
+                      setSessions,
                       searchKey,
                     });
                   }}
@@ -124,7 +209,7 @@ const Home: React.FC = () => {
               </div>
             </div>
             <DataTable
-              records={books as unknown as Record<string, unknown>[]}
+              records={sessions as unknown as Record<string, unknown>[]}
               columns={columns}
               page={page}
               recordsPerPage={limit}

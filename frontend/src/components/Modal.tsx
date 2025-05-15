@@ -1,8 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { createBook } from "@/services/book";
-import { IBook } from "@/types";
-import React, { useState, useEffect } from "react";
+/* eslint-disable @typescript-eslint/no-unused-vars */
+import React, { useState, useEffect, useContext } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
+import { getAvailableSlots } from "@/services/slots"; // Make sure this exists
+import { createSession } from "@/services/sessions"; // Should POST to /entry
+import { ISlot } from "@/types"; // Adjust according to your types
+import { CommonContext } from "@/context";
 
 interface ModalProps {
   isOpen: boolean;
@@ -17,62 +20,59 @@ const Modal: React.FC<ModalProps> = ({
   loading,
   setIsLoading,
 }) => {
-  // Ensure hooks are always called
   const [formData, setFormData] = useState({
-    name: "",
-    author: "",
-    publisher: "",
-    publicationYear: "",
-    subject: "",
+    plateNumber: "",
+    slotId: "",
   });
 
   const [errors, setErrors] = useState<any>({});
-
+  const [page, setPage] = useState<number>(1);
+  const [limit, setLimit] = useState<number>(10);
+  const [isFetchingSlots, setIsFetchingSlots] = useState(false);
+  const { setSlots, slots, setMeta } = useContext(CommonContext);
   useEffect(() => {
     if (!isOpen) {
-      // Reset form data when modal is closed
-      setFormData({
-        name: "",
-        author: "",
-        publisher: "",
-        publicationYear: "",
-        subject: "",
-      });
+      setFormData({ plateNumber: "", slotId: "" });
       setErrors({});
+    } else {
+      // fetchSlots();
+      setIsFetchingSlots(true);
+      getAvailableSlots({
+        page: page,
+        limit: limit,
+        setLoading: setIsFetchingSlots,
+        setMeta,
+        setSlots,
+      });
     }
-  }, [isOpen]);
+  }, [isOpen, setMeta, setSlots, page, limit]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const { name, value } = e.target;
-    setFormData({
-      ...formData,
+    setFormData((prev) => ({
+      ...prev,
       [name]: value,
-    });
+    }));
   };
-  const onSubmit = async (formData: IBook) => {
-    await createBook({ bookData: formData, setLoading: setIsLoading });
-    onClose();
-  };
+
   const validate = () => {
     const newErrors: any = {};
-    if (!formData.name) newErrors.name = "Book name is required";
-    if (!formData.author) newErrors.author = "Author is required";
-    if (!formData.publisher) newErrors.publisher = "Publisher is required";
-    if (!formData.publicationYear)
-      newErrors.publicationYear = "Publication year is required";
-    if (!formData.subject) newErrors.subject = "Subject is required";
-    if (isNaN(Number(formData.publicationYear)))
-      newErrors.publicationYear = "Publication year must be a valid number";
+    if (!formData.plateNumber)
+      newErrors.plateNumber = "Plate number is required";
+    if (!formData.slotId) newErrors.slotId = "Slot selection is required";
     return newErrors;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const formErrors = validate();
     setErrors(formErrors);
 
     if (Object.keys(formErrors).length === 0) {
-      onSubmit(formData);
+      await createSession({ sessionData: formData, setLoading: setIsLoading });
+      onClose();
     }
   };
 
@@ -82,114 +82,62 @@ const Modal: React.FC<ModalProps> = ({
     <div className="fixed inset-0 bg-gray-500 bg-opacity-50 flex justify-center items-center z-50">
       <div className="bg-white rounded-lg w-1/3 p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-semibold">Create a New Book</h2>
-          <button onClick={onClose} className="text-red-500">
+          <h2 className="text-xl font-semibold">Enter Parking</h2>
+          <button onClick={onClose} className="text-red-500 font-bold">
             X
           </button>
         </div>
         <form onSubmit={handleSubmit}>
+          {/* Plate Number */}
           <div className="mb-4">
             <label
-              htmlFor="name"
+              htmlFor="plateNumber"
               className="block text-sm font-medium text-gray-700"
             >
-              Book Name
+              Plate Number
             </label>
             <input
-              id="name"
-              name="name"
+              id="plateNumber"
+              name="plateNumber"
               type="text"
-              value={formData.name}
+              value={formData.plateNumber}
               onChange={handleChange}
               className="border rounded w-full p-2"
-              placeholder="Enter book name"
+              placeholder="Enter plate number"
             />
-            {errors.name && (
-              <span className="text-red-500 text-sm">{errors.name}</span>
+            {errors.plateNumber && (
+              <span className="text-red-500 text-sm">{errors.plateNumber}</span>
             )}
           </div>
+
+          {/* Slot Dropdown */}
           <div className="mb-4">
             <label
-              htmlFor="author"
+              htmlFor="slotId"
               className="block text-sm font-medium text-gray-700"
             >
-              Author
+              Select Slot
             </label>
-            <input
-              id="author"
-              name="author"
-              type="text"
-              value={formData.author}
+            <select
+              id="slotId"
+              name="slotId"
+              value={formData.slotId}
               onChange={handleChange}
-              className="border rounded w-full p-2"
-              placeholder="Enter author's name"
-            />
-            {errors.author && (
-              <span className="text-red-500 text-sm">{errors.author}</span>
-            )}
-          </div>
-          <div className="mb-4">
-            <label
-              htmlFor="publisher"
-              className="block text-sm font-medium text-gray-700"
+              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
             >
-              Publisher
-            </label>
-            <input
-              id="publisher"
-              name="publisher"
-              type="text"
-              value={formData.publisher}
-              onChange={handleChange}
-              className="border rounded w-full p-2"
-              placeholder="Enter publisher's name"
-            />
-            {errors.publisher && (
-              <span className="text-red-500 text-sm">{errors.publisher}</span>
+              <option value="">-- Select a Slot --</option>
+              {slots.map((slot: ISlot) => (
+                <option key={slot.id} value={slot.id}>
+                  {slot.number || `Slot ${slot.id}`}
+                </option>
+              ))}
+            </select>
+            {errors.slotId && (
+              <span className="text-red-500 text-sm">{errors.slotId}</span>
             )}
           </div>
-          <div className="mb-4">
-            <label
-              htmlFor="publicationYear"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Publication Year
-            </label>
-            <input
-              id="publicationYear"
-              name="publicationYear"
-              type="text"
-              value={formData.publicationYear}
-              onChange={handleChange}
-              className="border rounded w-full p-2"
-              placeholder="Enter publication year"
-            />
-            {errors.publicationYear && (
-              <span className="text-red-500 text-sm">
-                {errors.publicationYear}
-              </span>
-            )}
-          </div>
-          <div className="mb-4">
-            <label
-              htmlFor="subject"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Subject
-            </label>
-            <input
-              id="subject"
-              name="subject"
-              type="text"
-              value={formData.subject}
-              onChange={handleChange}
-              className="border rounded w-full p-2"
-              placeholder="Enter subject"
-            />
-            {errors.subject && (
-              <span className="text-red-500 text-sm">{errors.subject}</span>
-            )}
-          </div>
+
+          {/* Submit Button */}
           <div className="flex justify-end">
             <button
               type="submit"
@@ -201,7 +149,7 @@ const Modal: React.FC<ModalProps> = ({
               {loading ? (
                 <BiLoaderAlt className="animate-spin" size={20} />
               ) : (
-                "Create Book"
+                "Enter Parking"
               )}
             </button>
           </div>

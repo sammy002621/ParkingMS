@@ -13,7 +13,7 @@ ParkingSlotRouter.post(
 );
 ParkingSlotRouter.get(
   "/all",
-  [checkAdmin, checkLoggedIn],
+  [checkLoggedIn],
   ParkingSlotController.fetchParkingSlots
 );
 ParkingSlotRouter.get(

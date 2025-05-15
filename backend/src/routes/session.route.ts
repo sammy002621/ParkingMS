@@ -21,7 +21,15 @@ ParkingSession.get(
   ParkingSessionController.fetchSessionsByUser
 );
 ParkingSession.get("/:id", [checkLoggedIn], ParkingSessionController.fetchById);
-ParkingSession.get("/:id/fee", [checkLoggedIn], ParkingSessionController.getSessionFee);
-ParkingSession.patch("/:id/exit", [checkLoggedIn], ParkingSessionController.exitParking);
+ParkingSession.get(
+  "/:id/fee",
+  [checkLoggedIn],
+  ParkingSessionController.getSessionFee
+);
+ParkingSession.patch(
+  "/:id/exit",
+  [checkLoggedIn],
+  ParkingSessionController.exitParking
+);
 
 export default ParkingSession;

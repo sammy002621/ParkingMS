@@ -65,7 +65,7 @@ const fetchParkingSlots = async (req: Request, res: Response) => {
     });
     const total = await prisma.parkingSlot.count({});
     return ServerResponse.success(res, "ParkingSlots fetched successfully", {
-      parkingSlots,
+      slots: parkingSlots,
       meta: paginator({
         page: page ? Number(page) : 1,
         limit: limit ? Number(limit) : 10,
@@ -103,7 +103,7 @@ const fetchFreeSlots = async (req: Request, res: Response) => {
     });
     const total = await prisma.parkingSlot.count({});
     return ServerResponse.success(res, "ParkingSlots fetched successfully", {
-      parkingSlots,
+      slots: parkingSlots,
       meta: paginator({
         page: page ? Number(page) : 1,
         limit: limit ? Number(limit) : 10,
