@@ -1,6 +1,6 @@
 import { NextFunction, Request, RequestHandler, Response } from "express";
 import jwt from "jsonwebtoken";
-import { AuthMiddleware, AuthRequest } from "../types";
+import {  AuthRequest } from "../types";
 import prisma from "../prisma/prisma-client";
 import ServerResponse from "../utils/ServerResponse";
 

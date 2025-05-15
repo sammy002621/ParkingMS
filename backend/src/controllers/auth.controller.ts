@@ -17,7 +17,7 @@ const login = async (req: Request, res: Response) => {
         return ServerResponse.success(res, "Login successful", { user, token })
     } catch (error) {
         console.log(error)
-        return ServerResponse.error(res, "Error occured", { error })
+        return ServerResponse.error(res, "Error occurred", { error })
     }
 }
 

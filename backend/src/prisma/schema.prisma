@@ -4,41 +4,82 @@ generator client {
 
 datasource db {
     provider = "postgresql"
-    url      = env("DATABASE_URL") // Load database from environment variables
+    url      = env("DATABASE_URL")
 }
 
 enum Role {
-    ADMIN // The application admin who adds books
-    STUDENT // The user who can search and borrow books
+    ADMIN
+    STANDARD
 
     @@map("roles")
 }
 
+enum PaymentStatus {
+    PENDING
+    PAID
+}
+
+enum PaymentMethod {
+    CASH
+    CARD
+    MOBILE
+}
+
 model User {
-    id        String   @id @default(uuid())
-    firstName String   @map("first_name")
-    lastName  String   @map("last_name")
-    email     String   @unique
-    password  String
-    role      Role     @default(STUDENT)
-    createdAt DateTime @default(now()) @map("created_at")
-    updatedAt DateTime @updatedAt @map("updated_at")
-    books     Book[]
+    id             String           @id @default(uuid())
+    firstName      String           @map("first_name")
+    lastName       String           @map("last_name")
+    email          String           @unique
+    password       String
+    role           Role             @default(STANDARD) @map("role")
+    createdAt      DateTime         @default(now()) @map("created_at")
+    updatedAt      DateTime         @updatedAt @map("updated_at")
+    ParkingSession ParkingSession[]
+    Payment        Payment[]
 
     @@map("users")
 }
 
-model Book {
-    id              Int      @id @default(autoincrement())
-    name            String   @unique
-    author          String
-    publisher       String
-    publicationYear String
-    subject         String
-    createdAt       DateTime @default(now()) @map("created_at")
-    updatedAt       DateTime @updatedAt @map("updated_at")
-    createdBy       User     @relation(fields: [createdById], references: [id])
-    createdById     String
+model ParkingSlot {
+    id             String           @id @default(uuid())
+    number         String           @unique
+    isOccupied     Boolean          @default(false)
+    createdAt      DateTime         @default(now()) @map("created_at")
+    updatedAt      DateTime         @updatedAt @map("updated_at")
+    ParkingSession ParkingSession[]
 
-    @@map("books")
+    @@map("parking_slots")
+}
+
+model ParkingSession {
+    id String @id @default(uuid())
+
+    entryTime     DateTime      @default(now()) @map("start_time")
+    exitTime      DateTime?     @map("end_time")
+    paymentStatus PaymentStatus @default(PENDING) @map("payment_status")
+    plateNumber   String        @map("plate_number")
+    isExited      Boolean       @default(false) @map("is_exited")
+    slotId        String        @map("slot_id")
+    slot          ParkingSlot   @relation(fields: [slotId], references: [id])
+    payment       Payment?
+    userId        String        @map("user_id")
+    user          User          @relation(fields: [userId], references: [id])
+    createdAt     DateTime      @default(now()) @map("created_at")
+    updatedAt     DateTime      @updatedAt @map("updated_at")
+
+    @@map("parking_sessions")
+}
+
+model Payment {
+    id        String         @id @default(uuid())
+    sessionId String         @unique
+    amount    Float          @map("amount")
+    method    PaymentMethod  @map("method")
+    createdAt DateTime       @default(now()) @map("created_at")
+    updatedAt DateTime       @updatedAt @map("updated_at")
+    session   ParkingSession @relation(fields: [sessionId], references: [id])
+    userId    String
+    user      User           @relation(fields: [userId], references: [id])
+
+    @@map("payments")
 }
