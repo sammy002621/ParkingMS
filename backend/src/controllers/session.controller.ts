@@ -24,8 +24,11 @@ const createSession = async (req: Request, res: Response) => {
       },
     });
     if (!slot)
-      return ServerResponse.notFound(res, "no parking found with that id ");
-    if (!slot.isOccupied)
+      return ServerResponse.notFound(
+        res,
+        "no parking  slot found with that id "
+      );
+    if (slot.isOccupied)
       return ServerResponse.error(res, "Parking slot is already occupied");
     const session = await prisma.parkingSession.create({
       data: {
@@ -212,7 +215,7 @@ const getSessionFee = async (req: Request, res: Response) => {
       user: `${session.user.firstName} ${session.user.lastName}`,
       vehicle_plate_number: session.plateNumber,
       parking_hours: hours,
-      fee,
+     fee: `$${fee}`,
     });
   } catch (error) {
     return ServerResponse.error(res, "Error occurred", { error });
@@ -220,8 +223,10 @@ const getSessionFee = async (req: Request, res: Response) => {
 };
 const exitParking = async (req: Request, res: Response) => {
   try {
+    const authReq = req as AuthRequest;
     const exitTime = new Date();
-    const { id } = req.params;
+    const { id } = authReq.params;
+    const userId = authReq.user.id;
     const session = await prisma.parkingSession.findUnique({
       where: {
         id,
@@ -232,9 +237,19 @@ const exitParking = async (req: Request, res: Response) => {
     });
     if (!session) return ServerResponse.notFound(res, "Session not found");
     if (session!.paymentStatus !== "PAID")
-      ServerResponse.error(res, "Payment required before exit");
+      return ServerResponse.error(res, "Payment required before exit");
     if (session!.isExited) return ServerResponse.error(res, "Already exited");
-
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) return ServerResponse.unauthorized(res, "You are not logged in");
+    if (session.userId !== user.id)
+      return ServerResponse.error(
+        res,
+        "You are not authorized to exit this car"
+      );
     await prisma.parkingSession.update({
       where: {
         id,

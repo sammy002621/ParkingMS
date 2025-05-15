@@ -5,6 +5,9 @@ export class CreatePaymentDTO {
   @IsString()
   @IsNotEmpty()
   sessionId: string;
+  @IsString()
+  @IsNotEmpty()
+  plateNumber: string;
   @IsNumber()
   @IsNotEmpty()
   amount: number;

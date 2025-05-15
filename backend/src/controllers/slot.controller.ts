@@ -93,7 +93,7 @@ const fetchFreeSlots = async (req: Request, res: Response) => {
 
     const parkingSlots = await prisma.parkingSlot.findMany({
       where: {
-        isOccupied: true,
+        isOccupied: false,
       },
       skip:
         page && limit

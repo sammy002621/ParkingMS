@@ -9,9 +9,9 @@ import { paginator } from "../utils/paginator";
 const createPayment = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest;
-    const { amount, sessionId, method } = authReq.body;
+    const { amount, sessionId, method, plateNumber } = authReq.body;
     const session = await prisma.parkingSession.findUnique({
-      where: { id: sessionId },
+      where: { id: sessionId, plateNumber },
       include: { slot: true },
     });
     const userId = authReq.user.id;
@@ -108,6 +108,14 @@ const fetchPaymentById = async (req: Request, res: Response) => {
     const payment = await prisma.payment.findUnique({
       where: {
         id,
+      },
+      include: {
+        user: true,
+        session: {
+          include: {
+            slot: true,
+          },
+        },
       },
     });
     if (!payment)
