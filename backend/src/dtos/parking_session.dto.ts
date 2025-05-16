@@ -4,7 +4,4 @@ export class CreateSessionDTO {
   @IsString()
   @IsNotEmpty()
   plateNumber: string;
-  @IsString()
-  @IsNotEmpty()
-  slotId: string;
 }

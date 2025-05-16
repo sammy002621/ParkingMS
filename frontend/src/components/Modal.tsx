@@ -1,11 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import React, { useState, useEffect, useContext } from "react";
+import React, { useState, useEffect } from "react";
 import { BiLoaderAlt } from "react-icons/bi";
-import { getAvailableSlots } from "@/services/slots"; // Make sure this exists
 import { createSession } from "@/services/sessions"; // Should POST to /entry
-import { ISlot } from "@/types"; // Adjust according to your types
-import { CommonContext } from "@/context";
 
 interface ModalProps {
   isOpen: boolean;
@@ -22,30 +19,15 @@ const Modal: React.FC<ModalProps> = ({
 }) => {
   const [formData, setFormData] = useState({
     plateNumber: "",
-    slotId: "",
   });
 
   const [errors, setErrors] = useState<any>({});
-  const [page, setPage] = useState<number>(1);
-  const [limit, setLimit] = useState<number>(10);
-  const [isFetchingSlots, setIsFetchingSlots] = useState(false);
-  const { setSlots, slots, setMeta } = useContext(CommonContext);
   useEffect(() => {
     if (!isOpen) {
-      setFormData({ plateNumber: "", slotId: "" });
+      setFormData({ plateNumber: "" });
       setErrors({});
-    } else {
-      // fetchSlots();
-      setIsFetchingSlots(true);
-      getAvailableSlots({
-        page: page,
-        limit: limit,
-        setLoading: setIsFetchingSlots,
-        setMeta,
-        setSlots,
-      });
     }
-  }, [isOpen, setMeta, setSlots, page, limit]);
+  }, [isOpen]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
@@ -59,9 +41,19 @@ const Modal: React.FC<ModalProps> = ({
 
   const validate = () => {
     const newErrors: any = {};
-    if (!formData.plateNumber)
+
+    const plate = formData.plateNumber.trim().toUpperCase();
+
+    // Valid formats: RAD123B, RAB456C, GR1234, CD101, CM305
+    const platePattern = /^(R[A-Z]{2}\d{3}[A-Z]|GR\d{4}|C[DM]\d{3})$/;
+
+    if (!plate) {
       newErrors.plateNumber = "Plate number is required";
-    if (!formData.slotId) newErrors.slotId = "Slot selection is required";
+    } else if (!platePattern.test(plate)) {
+      newErrors.plateNumber =
+        "Invalid Rwandan plate. Examples: RAD123B, GR1234, CD101";
+    }
+
     return newErrors;
   };
 
@@ -107,33 +99,6 @@ const Modal: React.FC<ModalProps> = ({
             />
             {errors.plateNumber && (
               <span className="text-red-500 text-sm">{errors.plateNumber}</span>
-            )}
-          </div>
-
-          {/* Slot Dropdown */}
-          <div className="mb-4">
-            <label
-              htmlFor="slotId"
-              className="block text-sm font-medium text-gray-700"
-            >
-              Select Slot
-            </label>
-            <select
-              id="slotId"
-              name="slotId"
-              value={formData.slotId}
-              onChange={handleChange}
-              className="mt-1 block w-full pl-3 pr-10 py-2 text-base border border-gray-300 focus:outline-none focus:ring-blue-500 focus:border-blue-500 sm:text-sm rounded-md"
-            >
-              <option value="">-- Select a Slot --</option>
-              {slots.map((slot: ISlot) => (
-                <option key={slot.id} value={slot.id}>
-                  {slot.number || `Slot ${slot.id}`}
-                </option>
-              ))}
-            </select>
-            {errors.slotId && (
-              <span className="text-red-500 text-sm">{errors.slotId}</span>
             )}
           </div>
 

@@ -1,27 +1,64 @@
-import { PaymentMethod, PaymentStatus } from "@/enums";
+import {
+  PaymentMethod,
+  PaymentStatus,
+  RequestStatus,
+  SlotSize,
+  VehicleType,
+} from "@/enums";
 
-export interface TimestampAudit {
-  createdAt?: Date;
-  updatedAt?: Date;
-}
-export interface IUser extends TimestampAudit {
-  id: number;
-  firstName: string;
-  lastName: string;
-  email: string;
-  password?: string;
-  role: string;
-}
-
+// Shared Timestamp Audit
 export interface TimestampAudit {
   createdAt: Date;
   updatedAt: Date;
 }
 
+// User
+export interface IUser extends TimestampAudit {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  password?: string;
+  role: "ADMIN" | "USER";
+}
+
+// Vehicle
+
+export interface IVehicle extends TimestampAudit {
+  id: string;
+  plateNumber: string;
+  vehicleType: VehicleType;
+  size: SlotSize;
+  color: string;
+  maker: string;
+  model: string;
+  userId: string;
+  requests: [ISlotRequest];
+}
+
+// Parking Slot
+export type SlotStatus = "AVAILABLE" | "UNAVAILABLE";
+
+export interface ISlot extends TimestampAudit {
+  id: string;
+  number: string;
+  size: SlotSize;
+  vehicleType: VehicleType;
+  location: string;
+  status: SlotStatus;
+}
+
+export interface CreateSlot {
+  number: string;
+  size: SlotSize;
+  vehicleType: VehicleType;
+  location: string;
+}
+// Session
 export interface ISession extends TimestampAudit {
-  id?: string;
+  id: string;
   entryTime: Date;
-  exitTime?: Date;
+  exitTime?: Date | null;
   paymentStatus: PaymentStatus;
   plateNumber: string;
   isExited: boolean;
@@ -31,33 +68,24 @@ export interface ISession extends TimestampAudit {
   payment?: IPayment;
 }
 
-export interface ICreateSession {
-  plateNumber: string;
-  slotId: string;
-}
-export interface ISlot extends TimestampAudit {
-  id: string;
-  number: string;
-  isOccupied: boolean;
-}
-
+// Payment
 export interface IPayment extends TimestampAudit {
   id: string;
+  sessionId: string;
   amount: number;
   method: PaymentMethod;
+  userId: string;
 }
+
+// Create Session Payload
+export interface ICreateSession {
+  plateNumber: string;
+}
+
+// Login/Register
 export interface ILoginData {
   email: string;
   password: string;
-}
-
-export interface IMeta {
-  total: number;
-  lastPage: number;
-  currentPage: number;
-  perPage: number;
-  prev: number;
-  next: number;
 }
 
 export type RegisterInputs = {
@@ -67,6 +95,17 @@ export type RegisterInputs = {
   password: string;
 };
 
+// Pagination
+export interface IMeta {
+  total: number;
+  lastPage: number;
+  currentPage: number;
+  perPage: number;
+  prev: number;
+  next: number;
+}
+
+// Payment Fee Calculation
 export type PaymentFee = {
   session: string;
   entryTime: string;
@@ -76,6 +115,7 @@ export type PaymentFee = {
   parking_hours: number;
   fee: number;
 };
+
 export type PaymentFeePayload = {
   sessionId: string;
   plateNumber: string;
@@ -86,22 +126,43 @@ export type PaymentFeePayload = {
 export interface PaymentFeeModalProps {
   isOpen: boolean;
   onClose: () => void;
-  data: PaymentFee;
+  data: PaymentFee | null;
   onProceed: (data: PaymentFeePayload) => void;
 }
 
-interface SessionData {
+// Session Modal
+export interface SessionData {
   id: string;
   plateNumber: string;
   entryTime: string;
   exitTime?: string | null;
-  paymentStatus: "PAID" | "UNPAID";
+  paymentStatus: "PAID" | "PENDING";
   isExited: boolean;
 }
 
-interface SessionDetailsProps {
+export interface SessionDetailsProps {
   isOpen: boolean;
   onClose: () => void;
   data: SessionData | null;
   onProceed: (sessionId: string) => void;
+}
+
+export interface ISlotRequest extends TimestampAudit {
+  id: string;
+  userId: string;
+  vehicleId: string;
+  slotId?: string | null;
+  status: RequestStatus;
+  slot: ISlot;
+  vehicle: IVehicle;
+  status: RequestStatus;
+}
+
+export interface CreateVehicleDTO {
+  plateNumber: string;
+  vehicleType: VehicleType;
+  size: SlotSize;
+  color: string;
+  maker: string;
+  model: string;
 }

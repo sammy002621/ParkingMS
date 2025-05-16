@@ -2,8 +2,10 @@ import { Router } from "express";
 import authRouter from "./auth.route";
 import userRouter from "./user.route";
 import parkingSession from "./session.route";
-import parkingSlotRouter from "./slot.route";
 import paymentRouter from "./payment.route";
+import VehicleRouter from "./vehicle.route";
+import ParkingSlotRouter2 from "./slot.route";
+import slotRequestRouter from "./slot-request.route";
 const router = Router();
 
 router.use(
@@ -36,10 +38,20 @@ router.use(
     */
 );
 router.use(
-  "/slot",
-  parkingSlotRouter
+  "/slot-request",
+  slotRequestRouter
   /*
-        #swagger.tags = ['Parking Slot']
+        #swagger.tags = ['slot request ']
+        #swagger.security = [{
+                "bearerAuth": []
+        }] 
+    */
+);
+router.use(
+  "/slot",
+  ParkingSlotRouter2
+  /*
+        #swagger.tags = ['Parking Slot 2']
         #swagger.security = [{
                 "bearerAuth": []
         }] 
@@ -50,6 +62,16 @@ router.use(
   paymentRouter
   /*
         #swagger.tags = ['Payment ']
+        #swagger.security = [{
+                "bearerAuth": []
+        }] 
+    */
+);
+router.use(
+  "/vehicle",
+  VehicleRouter
+  /*
+        #swagger.tags = ['Vehicle ']
         #swagger.security = [{
                 "bearerAuth": []
         }] 

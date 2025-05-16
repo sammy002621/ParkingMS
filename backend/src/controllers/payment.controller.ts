@@ -2,7 +2,6 @@ import { Request, Response } from "express";
 import { AuthRequest } from "../types";
 import prisma from "../prisma/prisma-client";
 import ServerResponse from "../utils/ServerResponse";
-import { PaymentStatus } from "../enum";
 import { Prisma } from "@prisma/client";
 import { paginator } from "../utils/paginator";
 

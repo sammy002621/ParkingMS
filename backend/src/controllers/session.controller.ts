@@ -11,7 +11,7 @@ const createSession = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest; // Typecast to use `user`
 
-    const { plateNumber, slotId } = authReq.body;
+    const { plateNumber } = authReq.body;
     const userId = authReq.user.id;
     const user = await prisma.user.findUnique({
       where: {
@@ -19,18 +19,29 @@ const createSession = async (req: Request, res: Response) => {
       },
     });
     if (!user) return ServerResponse.unauthorized(res, "You are not logged in");
-    const slot = await prisma.parkingSlot.findUnique({
+    const vehicle = await prisma.vehicle.findFirst({
       where: {
-        id: slotId,
+        plateNumber: plateNumber,
+        userId: userId,
       },
     });
-    if (!slot)
-      return ServerResponse.notFound(
+    if (!vehicle)
+      return ServerResponse.error(
         res,
-        "no parking  slot found with that id "
+        "You don't have a vehicle with that plate number"
       );
-    if (slot.isOccupied)
-      return ServerResponse.error(res, "Parking slot is already occupied");
+
+    const slotRequest = await prisma.slotRequest.findFirst({
+      where: {
+        vehicleId: vehicle.id,
+        status: "APPROVED",
+      },
+      include: {
+        slot: true,
+      },
+    });
+    if(!slotRequest) return ServerResponse.error(res, " approved slot request found for this vehicle not found ");
+
     const session = await prisma.parkingSession.create({
       data: {
         plateNumber: plateNumber,
@@ -41,15 +52,12 @@ const createSession = async (req: Request, res: Response) => {
         },
         slot: {
           connect: {
-            id: slotId,
+            id: slotRequest?.slot?.id,
           },
         },
       },
     });
-    await prisma.parkingSlot.update({
-      where: { id: slotId },
-      data: { isOccupied: true },
-    });
+
     return ServerResponse.created(res, "Parking session created successfully", {
       session,
     });
@@ -318,7 +326,7 @@ const exitParking = async (req: Request, res: Response) => {
         id: session?.slot.id,
       },
       data: {
-        isOccupied: false,
+        status: "AVAILABLE",
       },
     });
     return ServerResponse.success(res, "car exited successfully", {

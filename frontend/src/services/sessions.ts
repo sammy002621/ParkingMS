@@ -97,7 +97,7 @@ export const getPaymentFee = async ({
   setMeta: React.Dispatch<React.SetStateAction<IMeta>>;
   sessionId: string;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
-  setFeeDetails: React.Dispatch<React.SetStateAction<PaymentFee>>;
+  setFeeDetails: React.Dispatch<React.SetStateAction<PaymentFee | null>>;
   setFeeModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   try {

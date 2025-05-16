@@ -264,10 +264,10 @@
         ]
       }
     },
-    "/slot/create": {
+    "/slot-request/create": {
       "post": {
         "tags": [
-          "Parking Slot"
+          "slot request "
         ],
         "description": "",
         "parameters": [
@@ -277,7 +277,7 @@
             "schema": {
               "type": "object",
               "properties": {
-                "number": {
+                "vehicleId": {
                   "example": "any"
                 }
               }
@@ -296,15 +296,120 @@
         ]
       }
     },
-    "/slot/all": {
+    "/slot-request/{id}": {
+      "put": {
+        "tags": [
+          "slot request "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "vehicleId": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "slot request "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/slot-request/{id}/status": {
+      "put": {
+        "tags": [
+          "slot request "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "status": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/slot-request/all": {
       "get": {
         "tags": [
-          "Parking Slot"
+          "slot request "
         ],
         "description": "",
         "parameters": [
           {
             "name": "searchKey",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "status",
             "in": "query",
             "type": "string"
           },
@@ -331,10 +436,168 @@
         ]
       }
     },
+    "/slot-request/user": {
+      "get": {
+        "tags": [
+          "slot request "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "searchKey",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "status",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/slot/create": {
+      "post": {
+        "tags": [
+          "Parking Slot 2"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "example": "any"
+                },
+                "size": {
+                  "example": "any"
+                },
+                "vehicleType": {
+                  "example": "any"
+                },
+                "location": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/slot/create/bulk": {
+      "post": {
+        "tags": [
+          "Parking Slot 2"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "slots": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/slot/all": {
+      "get": {
+        "tags": [
+          "Parking Slot 2"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "searchKey",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "size",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "vehicleType",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
     "/slot/all/available": {
       "get": {
         "tags": [
-          "Parking Slot"
+          "Parking Slot 2"
         ],
         "description": "",
         "parameters": [
@@ -364,7 +627,79 @@
     "/slot/{id}": {
       "get": {
         "tags": [
-          "Parking Slot"
+          "Parking Slot 2"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "patch": {
+        "tags": [
+          "Parking Slot 2"
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "number": {
+                  "example": "any"
+                },
+                "size": {
+                  "example": "any"
+                },
+                "vehicleType": {
+                  "example": "any"
+                },
+                "location": {
+                  "example": "any"
+                },
+                "status": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Parking Slot 2"
         ],
         "description": "",
         "parameters": [
@@ -462,6 +797,178 @@
       "get": {
         "tags": [
           "Payment "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/vehicle/create": {
+      "post": {
+        "tags": [
+          "Vehicle "
+        ],
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/vehicle/all": {
+      "get": {
+        "tags": [
+          "Vehicle "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "searchKey",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "type": "string"
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/vehicle/user/all": {
+      "get": {
+        "tags": [
+          "Vehicle "
+        ],
+        "description": "",
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      }
+    },
+    "/vehicle/{id}": {
+      "get": {
+        "tags": [
+          "Vehicle "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "put": {
+        "tags": [
+          "Vehicle "
+        ],
+        "description": "",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "type": "string"
+          },
+          {
+            "name": "body",
+            "in": "body",
+            "schema": {
+              "type": "object",
+              "properties": {
+                "vehicleType": {
+                  "example": "any"
+                },
+                "plateNumber": {
+                  "example": "any"
+                },
+                "size": {
+                  "example": "any"
+                },
+                "color": {
+                  "example": "any"
+                },
+                "maker": {
+                  "example": "any"
+                },
+                "model": {
+                  "example": "any"
+                }
+              }
+            }
+          }
+        ],
+        "responses": {
+          "default": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ]
+      },
+      "delete": {
+        "tags": [
+          "Vehicle "
         ],
         "description": "",
         "parameters": [

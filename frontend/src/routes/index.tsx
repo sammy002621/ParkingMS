@@ -3,6 +3,9 @@
 import { CommonContext } from "@/context";
 import Layout from "@/layout/Layout";
 import Profile from "@/pages/profile/Profile";
+import Requests from "@/pages/Requests/Requests";
+import Slots from "@/pages/Slots/Slots";
+import Vehicle from "@/pages/vehicle/Vehicle";
 import React, { useContext } from "react";
 import { useSelector } from "react-redux";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
@@ -25,6 +28,20 @@ const PagesRouter: React.FC<{}> = () => {
           <Route
             path={`/`}
             element={isLoggedIn ? <Home /> : <Navigate to={"/auth/login"} />}
+          />
+          <Route
+            path={`/vehicle`}
+            element={isLoggedIn ? <Vehicle /> : <Navigate to={"/auth/login"} />}
+          />
+          <Route
+            path={`/requests`}
+            element={
+              isLoggedIn ? <Requests /> : <Navigate to={"/auth/login"} />
+            }
+          />
+          <Route
+            path={`/slots`}
+            element={isLoggedIn ? <Slots /> : <Navigate to={"/auth/login"} />}
           />
           <Route
             path={`/${role.toLowerCase()}/profile`}

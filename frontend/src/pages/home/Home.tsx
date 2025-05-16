@@ -32,7 +32,7 @@ const Home: React.FC = () => {
   const [feeModalOpen, setFeeModalOpen] = useState(false);
   const [sessionModalOpen, setSessionModalOpen] = useState(false);
   const [sessionDetails, setSessionDetails] = useState<any>();
-  const [feeDetails, setFeeDetails] = useState<PaymentFee| null>(null);
+  const [feeDetails, setFeeDetails] = useState<PaymentFee | null>(null);
   const { user, sessions, setSessions, setMeta, meta } =
     useContext(CommonContext);
 

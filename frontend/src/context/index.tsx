@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IMeta, ISession } from "@/types";
+import { IMeta, ISession, ISlotRequest, IVehicle } from "@/types";
 import { Dispatch } from "@reduxjs/toolkit";
 import { createContext, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -8,7 +8,9 @@ export const CommonContext = createContext<any>({});
 export const CommonProvider = ({ children }: any) => {
   const [showSidebar, setShowSidebar] = useState(false);
   const [sessions, setSessions] = useState<ISession[]>([]);
+  const [vehicles, setVehicles] = useState<IVehicle[]>([]);
   const [slots, setSlots] = useState<ISession[]>([]);
+  const [slotRequests, setRequests] = useState<ISlotRequest[]>([]);
   const [meta, setMeta] = useState<IMeta>({
     total: 0,
     lastPage: 0,
@@ -29,6 +31,10 @@ export const CommonProvider = ({ children }: any) => {
         dispatch,
         isLoggedIn,
         user: userSlice.user,
+        vehicles,
+        slotRequests,
+        setRequests,
+        setVehicles,
         sessions,
         setSessions,
         meta,

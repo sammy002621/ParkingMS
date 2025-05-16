@@ -9,9 +9,21 @@ datasource db {
 
 enum Role {
     ADMIN
-    STANDARD
+    USER
 
     @@map("roles")
+}
+
+enum SlotSize {
+    SMALL
+    MEDIUM
+    LARGE
+}
+
+enum VehicleType {
+    CAR
+    BIKE
+    TRUCK
 }
 
 enum PaymentStatus {
@@ -25,28 +37,77 @@ enum PaymentMethod {
     MOBILE
 }
 
+enum SlotStatus {
+    AVAILABLE
+    UNAVAILABLE
+}
+
 model User {
     id             String           @id @default(uuid())
     firstName      String           @map("first_name")
     lastName       String           @map("last_name")
     email          String           @unique
     password       String
-    role           Role             @default(STANDARD) @map("role")
+    role           Role             @default(USER) @map("role")
     createdAt      DateTime         @default(now()) @map("created_at")
     updatedAt      DateTime         @updatedAt @map("updated_at")
     ParkingSession ParkingSession[]
     Payment        Payment[]
+    Vehicle        Vehicle[]
+    SlotRequest    SlotRequest[]
 
     @@map("users")
+}
+
+model Vehicle {
+    id          String        @id @default(uuid())
+    plateNumber String        @unique @map("plate_number")
+    vehicleType VehicleType   @map("vehicle_type")
+    size        SlotSize      @map("size")
+    color       String        @map("color")
+    maker       String        @map("maker")
+    model       String        @map("model")
+    userId      String        @map("user_id")
+    user        User          @relation(fields: [userId], references: [id])
+    requests    SlotRequest[]
+    createdAt   DateTime      @default(now()) @map("created_at")
+    updatedAt   DateTime      @updatedAt @map("updated_at")
+
+    @@map("vehicles")
+}
+
+enum RequestStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+model SlotRequest {
+    id        String        @id @default(uuid())
+    userId    String        @map("user_id")
+    vehicleId String        @map("vehicle_id")
+    slotId    String?       @map("slot_id")
+    status    RequestStatus @default(PENDING) @map("status")
+    slot      ParkingSlot?  @relation(fields: [slotId], references: [id])
+    vehicle   Vehicle       @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+    user      User          @relation(fields: [userId], references: [id])
+    createdAt DateTime      @default(now()) @map("created_at")
+    updatedAt DateTime      @updatedAt @map("updated_at")
+
+    @@map("slot_requests")
 }
 
 model ParkingSlot {
     id             String           @id @default(uuid())
     number         String           @unique
-    isOccupied     Boolean          @default(false)
+    size           SlotSize         @map("size")
+    vehicleType    VehicleType
+    location       String
+    status         SlotStatus       @default(AVAILABLE)
     createdAt      DateTime         @default(now()) @map("created_at")
     updatedAt      DateTime         @updatedAt @map("updated_at")
     ParkingSession ParkingSession[]
+    SlotRequest    SlotRequest[]
 
     @@map("parking_slots")
 }
@@ -60,7 +121,7 @@ model ParkingSession {
     plateNumber   String        @map("plate_number")
     isExited      Boolean       @default(false) @map("is_exited")
     slotId        String        @map("slot_id")
-    slot          ParkingSlot   @relation(fields: [slotId], references: [id])
+    slot          ParkingSlot   @relation(fields: [slotId], references: [id], onDelete: Cascade)
     payment       Payment?
     userId        String        @map("user_id")
     user          User          @relation(fields: [userId], references: [id])
@@ -77,7 +138,7 @@ model Payment {
     method    PaymentMethod  @map("method")
     createdAt DateTime       @default(now()) @map("created_at")
     updatedAt DateTime       @updatedAt @map("updated_at")
-    session   ParkingSession @relation(fields: [sessionId], references: [id])
+    session   ParkingSession @relation(fields: [sessionId], references: [id],onDelete: Cascade)
     userId    String
     user      User           @relation(fields: [userId], references: [id])
 

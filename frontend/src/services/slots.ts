@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/api";
-import { IMeta, ISlot } from "@/types";
+import { CreateSlot, IMeta, ISlot } from "@/types";
 import React from "react";
 import toast from "react-hot-toast";
 
@@ -8,7 +8,7 @@ export const createSlot = async ({
   slotData,
   setLoading,
 }: {
-  slotData: ISlot;
+  slotData: CreateSlot;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
 }) => {
   try {
@@ -84,5 +84,82 @@ export const getAvailableSlots = async ({
       : toast.error("Error getting parking slots");
   } finally {
     setLoading(false);
+  }
+};
+
+export const deleteSlot = async ({
+  id,
+  setLoading,
+  setIsModalClosed,
+}: {
+  id: string;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsModalClosed: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  try {
+    const url = `/slot/${id}`;
+    await api.delete(url);
+    toast.success("slot   deleted successfully");
+  } catch (error: any) {
+    if (error.response.data.status === 401)
+      return window.location.replace("/auth/login");
+    error?.response?.data?.message
+      ? toast.error(error.response.data.message)
+      : toast.error("Error deleting parking slots");
+  } finally {
+    setIsModalClosed(true);
+
+    setLoading(false);
+  }
+};
+export const updateSlot = async ({
+  id,
+  slotData,
+  setLoading,
+  setIsModalClosed,
+}: {
+  id: string;
+  slotData: CreateSlot;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setIsModalClosed: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  try {
+    const url = `/slot/${id}`;
+    await api.patch(url, { ...slotData });
+    toast.success("slot updated successfully");
+  } catch (error: any) {
+    if (error.response.data.status === 401)
+      return window.location.replace("/auth/login");
+    error?.response?.data?.message
+      ? toast.error(error.response.data.message)
+      : toast.error("Error updating parking slots");
+  } finally {
+    setLoading(false);
+    setIsModalClosed(true);
+  }
+};
+
+export const createSlots = async ({
+  slots,
+  setIsLoading,
+  onClose,
+}: {
+  slots: CreateSlot[];
+  onClose: () => void;
+  setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  try {
+    const url = "/slot/create/bulk";
+    await api.post(url, { slots });
+    onClose();
+    toast.success("Parking Slot created successfully");
+  } catch (error: any) {
+    if (error.response.data.status === 401)
+      return window.location.replace("/auth/login");
+    error?.response?.data?.message
+      ? toast.error(error.response.data.message)
+      : toast.error("Error creating  parking slots");
+  } finally {
+    setIsLoading(false);
   }
 };

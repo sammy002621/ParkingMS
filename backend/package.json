@@ -12,7 +12,7 @@
     "prisma:gen": "npx prisma generate --schema src/prisma/schema.prisma",
     "prisma:migrate": "npx prisma migrate dev --schema=./src/prisma/schema.prisma --name=init",
     "prisma:studio": "npx prisma studio --schema src/prisma/schema.prisma",
-    "prisma:all": "yarn prisma:migrate && yarn prisma:gen",
+    "prisma:all": "npm run prisma:migrate && npm run prisma:gen",
     "prisma:seed": "ts-node src/seeders/seed.ts",
     "docker:build": "docker build -t jodos/ne-restful .",
     "docker:run": "docker run -p 5058:5058 jodos/ne-restful"
@@ -34,6 +34,7 @@
     "nodemailer": "^6.9.1",
     "nodemon": "^2.0.22",
     "pg": "^8.11.1",
+    "reflect-metadata": "^0.2.2",
     "swagger-autogen": "^2.23.7",
     "ts-node": "^10.9.2",
     "typescript": "^5.1.5",
@@ -51,5 +52,6 @@
     "@types/uuid": "^9.0.2",
     "prisma": "^5.9.1",
     "swagger-ui-express": "^5.0.0"
-  }
+  },
+  "packageManager": "yarn@4.9.1+sha512.f95ce356460e05be48d66401c1ae64ef84d163dd689964962c6888a9810865e39097a5e9de748876c2e0bf89b232d583c33982773e9903ae7a76257270986538"
 }
