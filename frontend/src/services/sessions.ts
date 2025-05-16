@@ -1,6 +1,11 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/api";
-import { ISession, IMeta, ICreateSession } from "@/types";
+import {
+  ISession,
+  IMeta,
+  ICreateSession,
+  PaymentFee,
+} from "@/types";
 import React from "react";
 import toast from "react-hot-toast";
 
@@ -55,7 +60,6 @@ export const getSessions = async ({
   }
 };
 
-
 export const getUserSessions = async ({
   page,
   limit,
@@ -85,5 +89,35 @@ export const getUserSessions = async ({
       : toast.error("Error getting parking sessions");
   } finally {
     setLoading(false);
+  }
+};
+
+export const getPaymentFee = async ({
+  sessionId,
+  setLoading,
+  setFeeDetails,
+  setFeeModalOpen,
+  setMeta,
+}: {
+  setMeta: React.Dispatch<React.SetStateAction<IMeta>>;
+  sessionId: string;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setFeeDetails: React.Dispatch<React.SetStateAction<PaymentFee>>;
+  setFeeModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  try {
+    const url = `/session/${sessionId}/fee`;
+    const response = await api.get(url);
+    setFeeDetails(response.data.data);
+    setMeta(response.data.data.meta);
+  } catch (error: any) {
+    if (error.response.data.status === 401)
+      return window.location.replace("/auth/login");
+    error?.response?.data?.message
+      ? toast.error(error.response.data.message)
+      : toast.error("Error getting parking sessions");
+  } finally {
+    setLoading(false)
+    setFeeModalOpen(true)
   }
 };

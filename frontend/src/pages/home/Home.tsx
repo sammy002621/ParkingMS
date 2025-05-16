@@ -1,10 +1,16 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
+import PaymentFeeModal from "@/components/PaymentModal";
 import Sidebar from "@/components/Sidebar";
 import { CommonContext } from "@/context";
-import { handlePayment } from "@/services/payment";
-import { getSessions, getUserSessions } from "@/services/sessions";
+import { createPayment } from "@/services/payment";
+import {
+  getPaymentFee,
+  getSessions,
+  getUserSessions,
+} from "@/services/sessions";
+import { PaymentFeePayload } from "@/types";
 import { format } from "date-fns";
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import React, { useContext, useEffect, useState } from "react";
@@ -20,9 +26,20 @@ const Home: React.FC = () => {
   const [searchKey, setSearchKey] = useState<string>("");
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isModalClosed, setIsModalClosed] = useState<boolean>(false);
+  const [feeModalOpen, setFeeModalOpen] = useState(false);
+  const [feeDetails, setFeeDetails] = useState<any>(null);
   const { user, sessions, setSessions, setMeta, meta } =
     useContext(CommonContext);
 
+  const handleGetPaymentFee = (sessionId: string) => {
+    getPaymentFee({
+      sessionId,
+      setLoading,
+      setFeeDetails,
+      setFeeModalOpen,
+      setMeta,
+    });
+  };
   const columns: DataTableColumn[] = [
     {
       accessor: "slot.number",
@@ -83,8 +100,16 @@ const Home: React.FC = () => {
     },
     {
       accessor: "isExited",
-      title: "still in parking",
-      render: ({ isExited }) => <span>{isExited ? "No" : "Yes"}</span>,
+      title: "Parking Status",
+      render: ({ isExited, paymentStatus }) => {
+        if (isExited) {
+          return <span className="text-yellow-400">Exited</span>;
+        } else if (paymentStatus === "PAID") {
+          return <span className="text-green-600">Paid – Can Exit now </span>;
+        } else {
+          return <span className="text-red-600">In Parking – Unpaid</span>;
+        }
+      },
     },
 
     {
@@ -100,10 +125,10 @@ const Home: React.FC = () => {
           </button>
           {!row.paymentStatus || row.paymentStatus === "PENDING" ? (
             <button
-              onClick={() => handlePayment(row)}
+              onClick={() => handleGetPaymentFee(row.id as string)}
               className="bg-green-500 text-white px-5 py-1 rounded"
             >
-              Pay
+              Get paymentFee
             </button>
           ) : null}
         </div>
@@ -126,7 +151,7 @@ const Home: React.FC = () => {
         searchKey: "createdAt",
       });
     }
-    if (isModalClosed) {
+    if (isModalClosed || feeModalOpen) {
       if (role === "ADMIN") {
         getSessions({
           page,
@@ -157,15 +182,18 @@ const Home: React.FC = () => {
     setMeta,
     setSessions,
     role,
+    feeModalOpen,
   ]);
-
+  const handleProceedToPayment = (data: PaymentFeePayload) => {
+    createPayment({ paymentData: data, setLoading, setFeeModalOpen });
+  };
   return (
     <div className="w-full flex min-h-screen">
       <Sidebar />
       <Helmet>
         <title>Home</title>
       </Helmet>
-      <div className="w-full smlg:w-11/12 flex flex-col">
+      <div className="w-full lg:w-11/12 flex flex-col">
         <Navbar />
         <div className=" flex flex-col px-2 xs:px-6 sm:px-14 pt-8">
           <span className="text-lg font-semibold">
@@ -239,6 +267,12 @@ const Home: React.FC = () => {
         }}
         loading={loading}
         setIsLoading={setLoading}
+      />
+      <PaymentFeeModal
+        isOpen={feeModalOpen}
+        onClose={() => setFeeModalOpen(false)}
+        data={feeDetails}
+        onProceed={handleProceedToPayment}
       />
     </div>
   );

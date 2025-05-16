@@ -21,7 +21,7 @@ export interface TimestampAudit {
 export interface ISession extends TimestampAudit {
   id?: string;
   entryTime: Date;
-  exitTime?: Date ;
+  exitTime?: Date;
   paymentStatus: PaymentStatus;
   plateNumber: string;
   isExited: boolean;
@@ -32,8 +32,8 @@ export interface ISession extends TimestampAudit {
 }
 
 export interface ICreateSession {
-  plateNumber:string;
-  slotId:string
+  plateNumber: string;
+  slotId: string;
 }
 export interface ISlot extends TimestampAudit {
   id: string;
@@ -66,3 +66,26 @@ export type RegisterInputs = {
   email: string;
   password: string;
 };
+
+export type PaymentFee = {
+  session: string;
+  entryTime: string;
+  parkingSlot: string;
+  user: string;
+  vehicle_plate_number: string;
+  parking_hours: number;
+  fee: number;
+};
+export type PaymentFeePayload = {
+  sessionId: string;
+  plateNumber: string;
+  amount: number;
+  method: PaymentMethod;
+};
+
+export interface PaymentFeeModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  data: PaymentFee;
+  onProceed: (data: PaymentFeePayload) => void;
+}

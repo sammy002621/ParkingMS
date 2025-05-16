@@ -3,7 +3,7 @@ export enum PaymentStatus {
   PAID,
 }
 export enum PaymentMethod {
-  CASH,
-  CARD,
-  MOBILE_MONEY,
+  CASH = "CASH",
+  CARD= "CARD",
+  MOBILE_MONEY="MOBILE_MONEY",
 }

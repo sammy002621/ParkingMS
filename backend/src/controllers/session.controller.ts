@@ -237,11 +237,13 @@ const getSessionFee = async (req: Request, res: Response) => {
     const fee =
       CONSTANTS.BASE_RATE + Math.max(0, hours - 1) * CONSTANTS.ADDITIONAL_RATE;
     return ServerResponse.success(res, "fee calculated successfully", {
-      session: session.id,
+      session:session.id,
+      entryTime: session.entryTime,
+      parkingSlot: session.slot.number,
       user: `${session.user.firstName} ${session.user.lastName}`,
       vehicle_plate_number: session.plateNumber,
       parking_hours: hours,
-      fee: `$${fee}`,
+      fee,
     });
   } catch (error) {
     return ServerResponse.error(res, "Error occurred", { error });
