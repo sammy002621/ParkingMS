@@ -89,3 +89,19 @@ export interface PaymentFeeModalProps {
   data: PaymentFee;
   onProceed: (data: PaymentFeePayload) => void;
 }
+
+interface SessionData {
+  id: string;
+  plateNumber: string;
+  entryTime: string;
+  exitTime?: string | null;
+  paymentStatus: "PAID" | "UNPAID";
+  isExited: boolean;
+}
+
+interface SessionDetailsProps {
+  isOpen: boolean;
+  onClose: () => void;
+  data: SessionData | null;
+  onProceed: (sessionId: string) => void;
+}

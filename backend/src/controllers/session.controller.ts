@@ -5,6 +5,7 @@ import ServerResponse from "../utils/ServerResponse";
 import { Prisma } from "@prisma/client";
 import { paginator } from "../utils/paginator";
 import { CONSTANTS } from "../utils/cconstants";
+import { sortSessionsByPaymentAndExitStatus } from "../utils/sorter";
 
 const createSession = async (req: Request, res: Response) => {
   try {
@@ -69,7 +70,8 @@ const createSession = async (req: Request, res: Response) => {
 const fetchAllSessions = async (req: Request, res: Response) => {
   try {
     const { searchKey, page, limit } = req.query;
-
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
     if (parseInt(page as string) <= 0)
       return ServerResponse.error(
         res,
@@ -102,22 +104,25 @@ const fetchAllSessions = async (req: Request, res: Response) => {
           },
         },
       },
-      skip:
-        page && limit
-          ? (parseInt(page as string) - 1) * parseInt(limit as string)
-          : 0,
-      take: limit ? Number(limit) : 10,
     });
-    const total = await prisma.parkingSession.count({});
+    // Sort all sessions with your sorting function
+    const sortedSessions = sortSessionsByPaymentAndExitStatus(sessions);
+
+    // Paginate manually
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedSessions = sortedSessions.slice(
+      startIndex,
+      startIndex + limitNum
+    );
     return ServerResponse.success(
       res,
       "Parking sessions fetched successfully",
       {
-        sessions,
+        sessions: paginatedSessions,
         meta: paginator({
-          page: page ? Number(page) : 1,
-          limit: limit ? Number(limit) : 10,
-          total,
+          page: pageNum,
+          limit: limitNum,
+          total: sortedSessions.length,
         }),
       }
     );
@@ -148,16 +153,18 @@ const fetchById = async (req: Request, res: Response) => {
 const fetchSessionsByUser = async (req: Request, res: Response) => {
   try {
     const authReq = req as AuthRequest; // Typecast to use `user`
-
-    const { page, limit } = authReq.query;
+    const { page = "1", limit = "10", searchKey } = authReq.query;
     const userId = authReq.user.id;
 
-    if (parseInt(page as string) <= 0)
+    const pageNum = parseInt(page as string, 10);
+    const limitNum = parseInt(limit as string, 10);
+
+    if (pageNum <= 0)
       return ServerResponse.error(
         res,
         "Page number cannot be less than or equal to 0"
       );
-    if (parseInt(limit as string) <= 0)
+    if (limitNum <= 0)
       return ServerResponse.error(
         res,
         "Limit number cannot be less than or equal to 0"
@@ -169,9 +176,23 @@ const fetchSessionsByUser = async (req: Request, res: Response) => {
       },
     });
     if (!user) return ServerResponse.unauthorized(res, "You are not logged in");
+    const whereCondition: Prisma.ParkingSessionWhereInput = {};
+    if (searchKey) {
+      whereCondition.OR = [
+        {
+          plateNumber: { contains: searchKey as string, mode: "insensitive" },
+        },
+        {
+          slot: {
+            number: { contains: searchKey as string, mode: "insensitive" },
+          },
+        },
+      ];
+    }
     const sessions = await prisma.parkingSession.findMany({
       where: {
-        user: user,
+        userId: userId,
+        ...whereCondition,
       },
       include: {
         slot: {
@@ -186,22 +207,27 @@ const fetchSessionsByUser = async (req: Request, res: Response) => {
           },
         },
       },
-      skip:
-        page && limit
-          ? (parseInt(page as string) - 1) * parseInt(limit as string)
-          : 0,
-      take: limit ? Number(limit) : 10,
     });
-    const total = await prisma.parkingSession.count({});
+
+    // Sort all sessions with your sorting function
+    const sortedSessions = sortSessionsByPaymentAndExitStatus(sessions);
+
+    // Paginate manually
+    const startIndex = (pageNum - 1) * limitNum;
+    const paginatedSessions = sortedSessions.slice(
+      startIndex,
+      startIndex + limitNum
+    );
+
     return ServerResponse.success(
       res,
       "Parking sessions fetched successfully",
       {
-        sessions,
+        sessions: paginatedSessions,
         meta: paginator({
-          page: page ? Number(page) : 1,
-          limit: limit ? Number(limit) : 10,
-          total,
+          page: pageNum,
+          limit: limitNum,
+          total: sortedSessions.length,
         }),
       }
     );
@@ -237,7 +263,7 @@ const getSessionFee = async (req: Request, res: Response) => {
     const fee =
       CONSTANTS.BASE_RATE + Math.max(0, hours - 1) * CONSTANTS.ADDITIONAL_RATE;
     return ServerResponse.success(res, "fee calculated successfully", {
-      session:session.id,
+      session: session.id,
       entryTime: session.entryTime,
       parkingSlot: session.slot.number,
       user: `${session.user.firstName} ${session.user.lastName}`,
@@ -295,7 +321,10 @@ const exitParking = async (req: Request, res: Response) => {
         isOccupied: false,
       },
     });
-    return ServerResponse.success(res, "car exited successfully ");
+    return ServerResponse.success(res, "car exited successfully", {
+      msg: "car exited successfully",
+      exitTime,
+    });
   } catch (error) {
     return ServerResponse.error(res, "Error occurred", { error });
   }

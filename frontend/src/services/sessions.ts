@@ -1,11 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import api from "@/api";
-import {
-  ISession,
-  IMeta,
-  ICreateSession,
-  PaymentFee,
-} from "@/types";
+import { ISession, IMeta, ICreateSession, PaymentFee } from "@/types";
 import React from "react";
 import toast from "react-hot-toast";
 
@@ -117,7 +112,65 @@ export const getPaymentFee = async ({
       ? toast.error(error.response.data.message)
       : toast.error("Error getting parking sessions");
   } finally {
-    setLoading(false)
-    setFeeModalOpen(true)
+    setLoading(false);
+    setFeeModalOpen(true);
+  }
+};
+
+export const getSessionDetails = async ({
+  sessionId,
+  setLoading,
+  setSessionDetails,
+  setSessionModalOpen,
+  setMeta,
+}: {
+  setMeta: React.Dispatch<React.SetStateAction<IMeta>>;
+  sessionId: string;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setSessionDetails: React.Dispatch<React.SetStateAction<ISession>>;
+  setSessionModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  try {
+    const url = `/session/${sessionId}`;
+    const response = await api.get(url);
+    setSessionDetails(response.data.data.session);
+    setMeta(response.data.data.meta);
+  } catch (error: any) {
+    if (error.response.data.status === 401)
+      return window.location.replace("/auth/login");
+    error?.response?.data?.message
+      ? toast.error(error.response.data.message)
+      : toast.error("Error getting parking sessions");
+  } finally {
+    setLoading(false);
+    setSessionModalOpen(true);
+  }
+};
+
+export const exitSession = async ({
+  sessionId,
+  setLoading,
+  setSessionModalOpen,
+  setMeta,
+}: {
+  setMeta: React.Dispatch<React.SetStateAction<IMeta>>;
+  sessionId: string;
+  setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  setSessionModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
+}) => {
+  try {
+    const url = `/session/${sessionId}/exit`;
+    const response = await api.patch(url);
+    setMeta(response.data.data?.meta);
+    toast.success(response.data.message);
+  } catch (error: any) {
+    if (error.response.data.status === 401)
+      return window.location.replace("/auth/login");
+    error?.response?.data?.message
+      ? toast.error(error.response.data.message)
+      : toast.error("Error getting parking sessions");
+  } finally {
+    setLoading(false);
+    setSessionModalOpen(false);
   }
 };

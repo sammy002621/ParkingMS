@@ -2,15 +2,18 @@
 import Modal from "@/components/Modal";
 import Navbar from "@/components/Navbar";
 import PaymentFeeModal from "@/components/PaymentModal";
+import SessionDetails from "@/components/SessionDetails";
 import Sidebar from "@/components/Sidebar";
 import { CommonContext } from "@/context";
 import { createPayment } from "@/services/payment";
 import {
+  exitSession,
   getPaymentFee,
+  getSessionDetails,
   getSessions,
   getUserSessions,
 } from "@/services/sessions";
-import { PaymentFeePayload } from "@/types";
+import { PaymentFee, PaymentFeePayload } from "@/types";
 import { format } from "date-fns";
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import React, { useContext, useEffect, useState } from "react";
@@ -27,7 +30,9 @@ const Home: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isModalClosed, setIsModalClosed] = useState<boolean>(false);
   const [feeModalOpen, setFeeModalOpen] = useState(false);
-  const [feeDetails, setFeeDetails] = useState<any>(null);
+  const [sessionModalOpen, setSessionModalOpen] = useState(false);
+  const [sessionDetails, setSessionDetails] = useState<any>();
+  const [feeDetails, setFeeDetails] = useState<PaymentFee| null>(null);
   const { user, sessions, setSessions, setMeta, meta } =
     useContext(CommonContext);
 
@@ -40,17 +45,37 @@ const Home: React.FC = () => {
       setMeta,
     });
   };
+  const handleView = (sessionId: string) => {
+    getSessionDetails({
+      sessionId,
+      setLoading,
+      setSessionDetails,
+      setSessionModalOpen,
+      setMeta,
+    });
+  };
+  const handleExit = (sessionId: string) => {
+    exitSession({
+      sessionId,
+      setLoading,
+      setSessionModalOpen,
+      setMeta,
+    });
+  };
+  const handleProceedToPayment = (data: PaymentFeePayload) => {
+    createPayment({ paymentData: data, setLoading, setFeeModalOpen });
+  };
   const columns: DataTableColumn[] = [
     {
       accessor: "slot.number",
       title: "Parking Slot ",
-      sortable: true,
+      // sortable: true,
       sortKey: "id",
     },
     {
       accessor: "name",
       title: "Entry time",
-      sortable: true,
+      // sortable: true,
       sortKey: "name",
       render: ({ createdAt }) => (
         <span>
@@ -61,7 +86,7 @@ const Home: React.FC = () => {
     {
       accessor: "exitTime",
       title: "Exit time",
-      sortable: true,
+      // sortable: true,
       render: ({ exitTime }: any) =>
         exitTime ? (
           <span>{format(new Date(exitTime), "MMM dd, yyyy , hh:mm a")}</span>
@@ -118,7 +143,7 @@ const Home: React.FC = () => {
       render: (row) => (
         <div className="flex gap-2">
           <button
-            // onClick={() => handleView(row)}
+            onClick={() => handleView(row.id as string)}
             className="bg-blue-500 text-white px-3 py-1 rounded"
           >
             View
@@ -148,10 +173,10 @@ const Home: React.FC = () => {
         setLoading,
         setMeta,
         setSessions,
-        searchKey: "createdAt",
+        searchKey,
       });
     }
-    if (isModalClosed || feeModalOpen) {
+    if (isModalClosed || feeModalOpen || sessionModalOpen) {
       if (role === "ADMIN") {
         getSessions({
           page,
@@ -159,7 +184,7 @@ const Home: React.FC = () => {
           setLoading,
           setMeta,
           setSessions,
-          searchKey: "createdAt",
+          searchKey,
         });
       } else {
         getUserSessions({
@@ -168,7 +193,7 @@ const Home: React.FC = () => {
           setLoading,
           setMeta,
           setSessions,
-          searchKey: "createdAt",
+          searchKey,
         });
       }
       setIsModalClosed(false);
@@ -183,10 +208,9 @@ const Home: React.FC = () => {
     setSessions,
     role,
     feeModalOpen,
+    sessionModalOpen,
   ]);
-  const handleProceedToPayment = (data: PaymentFeePayload) => {
-    createPayment({ paymentData: data, setLoading, setFeeModalOpen });
-  };
+
   return (
     <div className="w-full flex min-h-screen">
       <Sidebar />
@@ -273,6 +297,12 @@ const Home: React.FC = () => {
         onClose={() => setFeeModalOpen(false)}
         data={feeDetails}
         onProceed={handleProceedToPayment}
+      />
+      <SessionDetails
+        isOpen={sessionModalOpen}
+        onClose={() => setSessionModalOpen(false)}
+        data={sessionDetails}
+        onProceed={handleExit}
       />
     </div>
   );
