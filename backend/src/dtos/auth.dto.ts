@@ -2,6 +2,7 @@ import {
   IsEmail,
   IsNotEmpty,
   IsString,
+  Length,
   Matches,
   MaxLength,
   MinLength,
@@ -21,4 +22,16 @@ export class LoginDTO {
       "Password must have at least 6 characters, one symbol, one number, and one uppercase letter.",
   })
   readonly password: string;
+}
+
+export class VerifyOtpDTO {
+  @IsString()
+  @IsNotEmpty()
+  @Length(6, 6, { message: "OTP must be a 6-digit code" })
+  otpCode: string;
+}
+
+export class ResendOtpDTO {
+  @IsEmail({}, { message: "Email must be a valid email address" })
+  email: string;
 }

@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { CommonContext } from "@/context";
 import Layout from "@/layout/Layout";
+import AdminDashboard from "@/pages/home/AdminDashboard";
 import Profile from "@/pages/profile/Profile";
 import Requests from "@/pages/Requests/Requests";
 import Slots from "@/pages/Slots/Slots";
@@ -26,8 +27,18 @@ const PagesRouter: React.FC<{}> = () => {
           <Route path="/auth/login" element={<Login />} />
           <Route path="/auth/signup" element={<Signup />} />
           <Route
-            path={`/`}
-            element={isLoggedIn ? <Home /> : <Navigate to={"/auth/login"} />}
+            path="/"
+            element={
+              isLoggedIn ? (
+                role?.toLowerCase() === "admin" ? (
+                  <AdminDashboard />
+                ) : (
+                  <Home />
+                )
+              ) : (
+                <Navigate to="/auth/login" />
+              )
+            }
           />
           <Route
             path={`/vehicle`}

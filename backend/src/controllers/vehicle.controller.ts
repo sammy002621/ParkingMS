@@ -29,7 +29,7 @@ const createVehicle = async (req: Request, res: Response) => {
 
     // Check if vehicle with plate number already exists for the user
     const existingVehicle = await prisma.vehicle.findFirst({
-      where: { plateNumber, userId },
+      where: { plateNumber },
     });
     if (existingVehicle) {
       return ServerResponse.error(
@@ -232,7 +232,7 @@ const fetchAllVehicleByUser = async (req: Request, res: Response) => {
       take: limit ? Number(limit) : 10,
     });
 
-    const total = await prisma.vehicle.count({ where: { userId } });
+    const total = await prisma.vehicle.count({ where: { userId,...whereCondition } });
 
     return ServerResponse.success(res, "User's vehicles fetched successfully", {
       vehicles,

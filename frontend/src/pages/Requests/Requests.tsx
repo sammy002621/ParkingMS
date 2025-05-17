@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import ConfirmDialog from "@/components/ConfirmDialog";
 import Navbar from "@/components/Navbar";
@@ -23,53 +24,84 @@ const Requests: React.FC = () => {
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(PAGE_SIZES[0]);
   const [searchKey, setSearchKey] = useState<string>("");
-  const [isModalClosed, setIsModalClosed] = useState<boolean>(false);
-  const [statusChanged, setStatusChanged] = useState<boolean>(false);
-  const [statusChanged2, setStatusChanged2] = useState<boolean>(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [refreshFlag, setRefreshFlag] = useState<boolean>(false);
+  const [approvalRequestId, setApprovalRequestId] = useState<string | null>(
+    null
+  );
+  const [rejectRequestId, setRejectRequestId] = useState<string | null>(null);
+  const [confirmDialogId, setConfirmDialogId] = useState<string | null>(null);
+
   const { user, slotRequests, setRequests, setMeta, meta } =
     useContext(CommonContext);
   const userSlice = useSelector((state: any) => state.userSlice);
   const role: string = userSlice.user.role;
 
-  const handleRequestApprove = (requestId: string) => {
-    updateRequestStatus({
+  const refreshData = () => {
+    if (role === "ADMIN") {
+      getSlotRequests({
+        page,
+        limit,
+        setLoading,
+        setMeta,
+        setRequests,
+        searchKey,
+      });
+    } else {
+      getUserRequests({
+        page,
+        limit,
+        setLoading,
+        setMeta,
+        setRequests,
+        searchKey,
+      });
+    }
+  };
+
+  const handleRequestApprove = async (requestId: string) => {
+    setApprovalRequestId(requestId);
+    await updateRequestStatus({
       id: requestId,
       status: "APPROVED",
       setLoading,
-      setStatusChanged,
+      setStatusChanged: () => {},
     });
+    setApprovalRequestId(null);
+    setRefreshFlag(true);
   };
-  const handleDelete = (id: string) => {
-    deleteRequest({
-      id,
-      setLoading,
-      setIsModalClosed,
-    });
+
+  const handleDelete = async (id: string) => {
+    await deleteRequest({ id, setLoading, setIsModalClosed: () => {} });
+    setConfirmDialogId(null);
+    setRefreshFlag(true);
   };
-  const handleRequestRejection = (requestId: string) => {
-    updateRequestStatus({
+
+  const handleRequestRejection = async (requestId: string) => {
+    setRejectRequestId(requestId);
+    await updateRequestStatus({
       id: requestId,
       status: "REJECTED",
       setLoading,
-      setStatusChanged: setStatusChanged2,
+      setStatusChanged: () => {},
     });
+    setRejectRequestId(null);
+    setRefreshFlag(true);
   };
+
   const columns: DataTableColumn[] = [
     {
       accessor: "vehicle.plateNumber",
-      title: "Plate number ",
+      title: "Plate number",
       sortKey: "id",
     },
     {
       accessor: "vehicle.vehicleType",
-      title: "request type",
+      title: "Request type",
     },
     {
       accessor: "vehicle.model",
-      title: "model",
+      title: "Model",
     },
-
     {
       accessor: "slot.location",
       title: "Parking Slot Location",
@@ -77,8 +109,8 @@ const Requests: React.FC = () => {
     },
     {
       accessor: "slot.number",
-      title: "Parking Slot number",
-      render: ({ slot }: any) => slot?.number ?? "Not slot yet",
+      title: "Parking Slot Number",
+      render: ({ slot }: any) => slot?.number ?? "Not assigned",
     },
     {
       accessor: "slot.size",
@@ -108,7 +140,7 @@ const Requests: React.FC = () => {
 
         return (
           <span
-            className={`px-3 py-1 rounded-full  text-sm font-semibold ${bgColor}`}
+            className={`px-3 py-1 rounded-full text-sm font-semibold ${bgColor}`}
           >
             {status}
           </span>
@@ -118,113 +150,79 @@ const Requests: React.FC = () => {
     {
       accessor: "",
       title: "Actions",
-      render: (request: any) => {
-        return (
-          <div className="flex gap-2">
-            {role == "USER" && request.status == RequestStatus.PENDING && (
+      render: (request: any) => (
+        <div className="flex gap-2">
+          {role === "USER" &&
+            (request.status === RequestStatus.PENDING ||
+              request.status == RequestStatus.REJECTED) && (
               <>
                 <button
-                  onClick={() => setShowConfirm(true)}
+                  onClick={() => setConfirmDialogId(request.id)}
                   className="bg-red-500 text-white px-4 py-2 rounded-md"
                 >
                   Delete
                 </button>
-
-                <ConfirmDialog
-                  isOpen={showConfirm}
-                  onClose={() => setShowConfirm(false)}
-                  onConfirm={() => handleDelete(request.id)}
-                  message="Are you sure you want to delete this request?"
-                />
+                {confirmDialogId === request.id && (
+                  <ConfirmDialog
+                    isOpen={true}
+                    onClose={() => setConfirmDialogId(null)}
+                    onConfirm={() => handleDelete(request.id)}
+                    message="Are you sure you want to delete this request?"
+                  />
+                )}
               </>
             )}
-
-            {role === "ADMIN" && request.status == RequestStatus.PENDING && (
-              <>
-                <button
-                  onClick={() => handleRequestApprove(request.id)}
-                  className="bg-green-500 text-white px-4 py-2 rounded-md"
-                >
-                  Approve
-                </button>
-                <button
-                  onClick={() => handleRequestRejection(request.id)}
-                  className="bg-yellow-500 text-white px-4 py-2 rounded-md"
-                >
-                  Reject
-                </button>
-              </>
-            )}
-          </div>
-        );
-      },
+          {role === "ADMIN" && request.status === RequestStatus.PENDING && (
+            <>
+              <button
+                onClick={() => handleRequestApprove(request.id)}
+                className={`${
+                  approvalRequestId === request.id
+                    ? "bg-green-200 cursor-not-allowed"
+                    : "bg-green-500"
+                } text-white px-4 py-2 rounded-md`}
+                disabled={approvalRequestId === request.id}
+              >
+                {approvalRequestId === request.id ? "Processing..." : "Approve"}
+              </button>
+              <button
+                onClick={() => handleRequestRejection(request.id)}
+                className={`${
+                  rejectRequestId === request.id
+                    ? "bg-gray-400 cursor-not-allowed"
+                    : "bg-yellow-500"
+                } text-white px-4 py-2 rounded-md`}
+                disabled={rejectRequestId === request.id}
+              >
+                {rejectRequestId === request.id ? "Processing..." : "Reject"}
+              </button>
+            </>
+          )}
+        </div>
+      ),
     },
   ];
 
   useEffect(() => {
-    if (role === "ADMIN") {
-      getSlotRequests({
-        page,
-        limit,
-        setLoading,
-        setMeta,
-        setRequests,
-        searchKey,
-      });
-    } else {
-      getUserRequests({
-        page,
-        limit,
-        setLoading,
-        setMeta,
-        setRequests,
-        searchKey,
-      });
+    refreshData();
+  }, [page, limit, searchKey, role]);
+
+  useEffect(() => {
+    if (refreshFlag) {
+      refreshData();
+      setRefreshFlag(false);
     }
-    if (isModalClosed || statusChanged) {
-      if (role === "ADMIN") {
-        getSlotRequests({
-          page,
-          limit,
-          setLoading,
-          setMeta,
-          setRequests,
-          searchKey,
-        });
-      } else {
-        getUserRequests({
-          page,
-          limit,
-          setLoading,
-          setMeta,
-          setRequests,
-          searchKey,
-        });
-      }
-      setIsModalClosed(false);
-    }
-  }, [
-    isModalClosed,
-    page,
-    limit,
-    searchKey,
-    setLoading,
-    setMeta,
-    setRequests,
-    role,
-    statusChanged,
-    statusChanged2,
-  ]);
+  }, [refreshFlag]);
 
   return (
     <div className="w-full flex min-h-screen">
       <Sidebar />
       <Helmet>
-        <title>Home</title>
+        <title>Requests</title>
       </Helmet>
       <div className="w-full lg:w-11/12 flex flex-col">
         <Navbar />
-        <div className=" flex flex-col px-2 xs:px-6 sm:px-14 pt-8">
+        <div className="flex flex-col px-2 xs:px-6 sm:px-14 pt-8">
           <span className="text-lg font-semibold">
             Hi👋, {user.firstName} {user.lastName}
           </span>
@@ -232,7 +230,7 @@ const Requests: React.FC = () => {
             <div className="w-full justify-end sm:justify-between flex mb-6 items-center">
               <div>
                 <span className="hidden sm:flex my-8 text-xl">
-                  your requests
+                  Your requests
                 </span>
               </div>
               <div className="bg-white w-11/12 dsm:w-10/12 sm:w-5/12 plg:w-3/12 rounded-3xl flex items-center relative h-12 justify-between">
@@ -243,16 +241,7 @@ const Requests: React.FC = () => {
                   onChange={(e) => setSearchKey(e.target.value)}
                 />
                 <button
-                  onClick={() => {
-                    getSlotRequests({
-                      page,
-                      limit,
-                      setLoading,
-                      setMeta,
-                      setRequests,
-                      searchKey,
-                    });
-                  }}
+                  onClick={refreshData}
                   className="absolute top-1 mx-auto bottom-1 right-2 bg-primary-blue w-10 h-10 rounded-full flex items-center justify-center"
                 >
                   <BiSearch color="white" size={25} />
@@ -282,14 +271,6 @@ const Requests: React.FC = () => {
           </div>
         </div>
       </div>
-
-      {/* <EditRequestModal
-        isOpen={editModalOpen}
-        onClose={() => setEditModalOpen(false)}
-        request={selectedRequest}
-        setIsModalClosed={setIsModalClosed}
-        setLoading={setLoading}
-      /> */}
     </div>
   );
 };

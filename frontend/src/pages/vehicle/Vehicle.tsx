@@ -19,6 +19,7 @@ import { useSelector } from "react-redux";
 import ViewVehicleModal from "@/components/vehicle/ViewVehicle";
 import EditVehicleModal from "@/components/vehicle/EditVehicleModal";
 import ConfirmDialog from "@/components/ConfirmDialog";
+import { IVehicle } from "@/types";
 
 const Vehicle: React.FC = () => {
   const PAGE_SIZES = [5, 10, 15, 20];
@@ -32,7 +33,7 @@ const Vehicle: React.FC = () => {
   const [selectedVehicle, setSelectedVehicle] = useState<any | null>(null);
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [editModalOpen, setEditModalOpen] = useState(false);
-  const [showConfirm, setShowConfirm] = useState(false);
+  const [vehicleToDelete, setVehicleToDelete] = useState<IVehicle | null>(null);
 
   const { user, vehicles, setVehicles, setMeta, meta } =
     useContext(CommonContext);
@@ -103,18 +104,23 @@ const Vehicle: React.FC = () => {
                 </button>
                 <>
                   <button
-                    onClick={() => setShowConfirm(true)}
+                    onClick={() => setVehicleToDelete(vehicle)}
                     className="bg-red-500 text-white px-4 py-2 rounded-md"
                   >
                     Delete
                   </button>
 
-                  <ConfirmDialog
-                    isOpen={showConfirm}
-                    onClose={() => setShowConfirm(false)}
-                    onConfirm={() => handleDelete(vehicle.id)}
-                    message="Are you sure you want to delete this vehicle?"
-                  />
+                  {vehicleToDelete && (
+                    <ConfirmDialog
+                      isOpen={true}
+                      onClose={() => setVehicleToDelete(null)}
+                      onConfirm={() => {
+                        handleDelete(vehicleToDelete.id);
+                        setVehicleToDelete(null);
+                      }}
+                      message="Are you sure you want to delete this vehicle?"
+                    />
+                  )}
                 </>
               </>
             )}
@@ -168,6 +174,7 @@ const Vehicle: React.FC = () => {
         });
       }
       setIsModalClosed(false);
+      setIsSlotRequested(false);
     }
   }, [
     isModalClosed,
@@ -219,14 +226,25 @@ const Vehicle: React.FC = () => {
                 />
                 <button
                   onClick={() => {
-                    getVehicles({
-                      page,
-                      limit,
-                      setLoading,
-                      setMeta,
-                      setVehicles,
-                      searchKey,
-                    });
+                    if (role === "ADMIN") {
+                      getVehicles({
+                        page,
+                        limit,
+                        setLoading,
+                        setMeta,
+                        setVehicles,
+                        searchKey,
+                      });
+                    } else {
+                      getUserVehicles({
+                        page,
+                        limit,
+                        setLoading,
+                        setMeta,
+                        setVehicles,
+                        searchKey,
+                      });
+                    }
                   }}
                   className="absolute top-1 mx-auto bottom-1 right-2 bg-primary-blue w-10 h-10 rounded-full flex items-center justify-center"
                 >

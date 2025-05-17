@@ -9,6 +9,7 @@ import {
   VehicleType,
 } from "@prisma/client";
 import { AuthRequest } from "../types";
+import { sendApprovalEmail, sendRejectionEmail } from "../utils/email";
 
 const createRequest = async (req: Request, res: Response) => {
   try {
@@ -124,10 +125,20 @@ const deleteRequest = async (req: Request, res: Response) => {
         403
       );
     }
-    if (request.status !== RequestStatus.PENDING) {
+    // if (request.status !== RequestStatus.PENDING) {
+    //   return ServerResponse.error(
+    //     res,
+    //     "Only pending requests can be deleted",
+    //     400
+    //   );
+    // }
+    if (
+      request.status !== RequestStatus.PENDING &&
+      request.status !== RequestStatus.REJECTED
+    ) {
       return ServerResponse.error(
         res,
-        "Only pending requests can be deleted",
+        "Only pending or rejected requests can be deleted",
         400
       );
     }
@@ -176,7 +187,7 @@ const approveRejectRequest = async (req: Request, res: Response) => {
     // Find request
     const slotRequest = await prisma.slotRequest.findUnique({
       where: { id },
-      include: { vehicle: true },
+      include: { vehicle: true, user: true },
     });
     if (!slotRequest) {
       return ServerResponse.notFound(res, "Slot request not found");
@@ -203,6 +214,14 @@ const approveRejectRequest = async (req: Request, res: Response) => {
         );
       }
 
+      await sendApprovalEmail(
+        slotRequest.user.email,
+        assignedSlot.number,
+        slotRequest.vehicle,
+        assignedSlot.location,
+        res
+      );
+
       // Update slotRequest with assigned slot and status APPROVED
       const updated = await prisma.slotRequest.update({
         where: { id },
@@ -216,6 +235,19 @@ const approveRejectRequest = async (req: Request, res: Response) => {
         slotRequest: updated,
       });
     } else {
+      let slotLocation: string | undefined = undefined;
+      if (slotRequest?.slotId) {
+        const slot = await prisma.parkingSlot.findUnique({
+          where: { id: slotRequest.slotId },
+        });
+        slotLocation = slot?.location;
+      }
+      await sendRejectionEmail(
+        slotRequest.user.email,
+        slotRequest.vehicle,
+        "Slot request rejected please try again later with a different vehicle",
+        slotLocation
+      );
       // Just reject
       const updated = await prisma.slotRequest.update({
         where: { id },

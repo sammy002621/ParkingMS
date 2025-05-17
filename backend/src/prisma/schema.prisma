@@ -49,6 +49,7 @@ model User {
     email          String           @unique
     password       String
     role           Role             @default(USER) @map("role")
+    isVerified     Boolean          @default(false) @map("is_verified")
     createdAt      DateTime         @default(now()) @map("created_at")
     updatedAt      DateTime         @updatedAt @map("updated_at")
     ParkingSession ParkingSession[]
@@ -138,9 +139,21 @@ model Payment {
     method    PaymentMethod  @map("method")
     createdAt DateTime       @default(now()) @map("created_at")
     updatedAt DateTime       @updatedAt @map("updated_at")
-    session   ParkingSession @relation(fields: [sessionId], references: [id],onDelete: Cascade)
+    session   ParkingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
     userId    String
     user      User           @relation(fields: [userId], references: [id])
 
     @@map("payments")
+}
+
+model Otp {
+    id         String   @id @default(uuid())
+    userId     String   @map("user_id")
+    otpCode    String   @map("otp_code")
+    expiresAt  DateTime @map("expires_at")
+    isVerified Boolean  @default(false) @map("is_verified")
+    createdAt  DateTime @default(now()) @map("created_at")
+    updatedAt  DateTime @updatedAt @map("updated_at")
+
+    @@map("otps")
 }

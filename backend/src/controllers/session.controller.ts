@@ -40,7 +40,11 @@ const createSession = async (req: Request, res: Response) => {
         slot: true,
       },
     });
-    if(!slotRequest) return ServerResponse.error(res, " approved slot request found for this vehicle not found ");
+    if (!slotRequest)
+      return ServerResponse.error(
+        res,
+        " approved slot request found for this vehicle not found "
+      );
 
     const session = await prisma.parkingSession.create({
       data: {
@@ -327,6 +331,11 @@ const exitParking = async (req: Request, res: Response) => {
       },
       data: {
         status: "AVAILABLE",
+      },
+    });
+    await prisma.slotRequest.deleteMany({
+      where: {
+        slotId: session.slotId,
       },
     });
     return ServerResponse.success(res, "car exited successfully", {

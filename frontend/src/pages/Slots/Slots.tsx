@@ -14,7 +14,7 @@ import EditSlotModal from "@/components/slot/EditSlotModal";
 import ViewSlotModal from "@/components/slot/ViewSlot";
 import CreateMultipleSlotsModal from "@/components/slot/CreateMultipleModal";
 
-const Home: React.FC = () => {
+const Slots: React.FC = () => {
   const PAGE_SIZES = [5, 10, 15, 20];
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
@@ -139,7 +139,7 @@ const Home: React.FC = () => {
     <div className="w-full flex min-h-screen">
       <Sidebar />
       <Helmet>
-        <title>Home</title>
+        <title>Slots</title>
       </Helmet>
       <div className="w-full lg:w-11/12 flex flex-col">
         <Navbar />
@@ -262,4 +262,4 @@ const Home: React.FC = () => {
   );
 };
 
-export default Home;
+export default Slots;
