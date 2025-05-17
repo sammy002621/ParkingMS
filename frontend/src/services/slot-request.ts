@@ -140,7 +140,7 @@ export const deleteRequest = async ({
   }
 };
 // Admin approve/reject slot request
-export const updateRequestStatus = async ({
+export const updateStatus = async ({
   id,
   status,
   setLoading,

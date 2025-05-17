@@ -6,6 +6,7 @@ import paymentRouter from "./payment.route";
 import VehicleRouter from "./vehicle.route";
 import ParkingSlotRouter2 from "./slot.route";
 import slotRequestRouter from "./slot-request.route";
+import TransferRouter from "./transfer.route";
 const router = Router();
 
 router.use(
@@ -72,6 +73,16 @@ router.use(
   VehicleRouter
   /*
         #swagger.tags = ['Vehicle ']
+        #swagger.security = [{
+                "bearerAuth": []
+        }] 
+    */
+);
+router.use(
+  "/transfer",
+  TransferRouter
+  /*
+        #swagger.tags = ['Transfer ']
         #swagger.security = [{
                 "bearerAuth": []
         }] 

@@ -6,6 +6,7 @@ import AdminDashboard from "@/pages/home/AdminDashboard";
 import Profile from "@/pages/profile/Profile";
 import Requests from "@/pages/Requests/Requests";
 import Slots from "@/pages/Slots/Slots";
+import Transfer from "@/pages/transfer/Transfer";
 import Vehicle from "@/pages/vehicle/Vehicle";
 import React, { useContext } from "react";
 import { useSelector } from "react-redux";
@@ -48,6 +49,12 @@ const PagesRouter: React.FC<{}> = () => {
             path={`/requests`}
             element={
               isLoggedIn ? <Requests /> : <Navigate to={"/auth/login"} />
+            }
+          />
+          <Route
+            path={`/transfers`}
+            element={
+              isLoggedIn ? <Transfer /> : <Navigate to={"/auth/login"} />
             }
           />
           <Route

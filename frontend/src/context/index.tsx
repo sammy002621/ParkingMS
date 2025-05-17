@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { IMeta, ISession, ISlotRequest, IVehicle } from "@/types";
+import { IMeta, ISession, ISlotRequest, ITransfer, IVehicle } from "@/types";
 import { Dispatch } from "@reduxjs/toolkit";
 import { createContext, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
@@ -11,6 +11,7 @@ export const CommonProvider = ({ children }: any) => {
   const [vehicles, setVehicles] = useState<IVehicle[]>([]);
   const [slots, setSlots] = useState<ISession[]>([]);
   const [slotRequests, setRequests] = useState<ISlotRequest[]>([]);
+  const [transfers, setTransfers] = useState<ITransfer[]>([]);
   const [meta, setMeta] = useState<IMeta>({
     total: 0,
     lastPage: 0,
@@ -41,6 +42,8 @@ export const CommonProvider = ({ children }: any) => {
         setMeta,
         slots,
         setSlots,
+        transfers,
+        setTransfers,
       }}
     >
       {children}

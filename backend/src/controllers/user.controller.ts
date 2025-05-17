@@ -4,6 +4,7 @@ import { Request, Response } from "express";
 import prisma from "../prisma/prisma-client";
 import ServerResponse from "../utils/ServerResponse";
 import { sendOtpEmail } from "../utils/email";
+import { paginator } from "../utils/paginator";
 
 config();
 
@@ -69,8 +70,71 @@ const createUser = async (req: Request, res: Response) => {
   }
 };
 
+const getAllUsers = async (req: Request, res: Response) => {
+  try {
+    const { searchKey, page, limit } = req.query;
+
+    if (page && Number(page) <= 0)
+      return ServerResponse.error(
+        res,
+        "Page number cannot be less than or equal to 0"
+      );
+    if (limit && Number(limit) <= 0)
+      return ServerResponse.error(
+        res,
+        "Limit number cannot be less than or equal to 0"
+      );
+
+    // Build where condition based on searchKey
+    const whereCondition: any = {};
+    if (searchKey) {
+      whereCondition.OR = [
+        { email: { contains: searchKey as string, mode: "insensitive" } },
+        { firstName: { contains: searchKey as string, mode: "insensitive" } },
+        { lastName: { contains: searchKey as string, mode: "insensitive" } },
+        { role: { contains: searchKey as string, mode: "insensitive" } },
+      ];
+    }
+
+    // Fetch users with pagination
+    const users = await prisma.user.findMany({
+      where: whereCondition,
+      skip: page && limit ? (Number(page) - 1) * Number(limit) : 0,
+      take: limit ? Number(limit) : 10,
+      orderBy: {
+        createdAt: "desc",
+      },
+      select: {
+        id: true,
+        email: true,
+        firstName: true,
+        lastName: true,
+        role: true,
+        createdAt: true,
+        updatedAt: true,
+      },
+    });
+
+    // Count total matching users for pagination
+    const total = await prisma.user.count({ where: whereCondition });
+
+    return ServerResponse.success(res, "Users fetched successfully", {
+      users,
+      meta: paginator({
+        page: page ? Number(page) : 1,
+        limit: limit ? Number(limit) : 10,
+        total,
+      }),
+    });
+  } catch (error) {
+    console.error(error);
+    return ServerResponse.error(res, "Error occurred", { error });
+  }
+};
+
 const userController = {
   createUser,
+  getAllUsers,
 };
 
 export default userController;

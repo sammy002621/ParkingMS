@@ -19,7 +19,7 @@ export enum SlotSize {
   LARGE = "LARGE",
 }
 
-export enum RequestStatus {
+export enum Status {
   PENDING = "PENDING",
   APPROVED = "APPROVED",
   REJECTED = "REJECTED",

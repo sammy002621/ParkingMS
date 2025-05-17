@@ -1,16 +1,16 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import ConfirmDialog from "@/components/ConfirmDialog";
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
+import CreateTransferModal from "@/components/transfer/CreateTransferModal";
 import { CommonContext } from "@/context";
 import { Status } from "@/enums";
 import {
-  deleteRequest,
-  getSlotRequests,
-  getUserRequests,
-  updateStatus,
-} from "@/services/slot-request";
+  approveTransfer,
+  getTransfers,
+  getUserTransfers,
+  rejectTransfer,
+} from "@/services/transfer";
 
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import React, { useContext, useEffect, useState } from "react";
@@ -18,74 +18,55 @@ import { Helmet } from "react-helmet";
 import { BiSearch } from "react-icons/bi";
 import { useSelector } from "react-redux";
 
-const Requests: React.FC = () => {
+const Transfers: React.FC = () => {
   const PAGE_SIZES = [5, 10, 15, 20];
   const [loading, setLoading] = useState<boolean>(false);
   const [page, setPage] = useState<number>(1);
   const [limit, setLimit] = useState<number>(PAGE_SIZES[0]);
   const [searchKey, setSearchKey] = useState<string>("");
-  const [refreshFlag, setRefreshFlag] = useState<boolean>(false);
-  const [approvalRequestId, setApprovalRequestId] = useState<string | null>(
+  const [approvalTransferId, setApprovalTransferId] = useState<string | null>(
     null
   );
-  const [rejectRequestId, setRejectRequestId] = useState<string | null>(null);
-  const [confirmDialogId, setConfirmDialogId] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const [isModalClosed, setIsModalClosed] = useState<boolean>(false);
+  const [rejectTransferId, setRejectTransferId] = useState<string | null>(null);
 
-  const { user, slotRequests, setRequests, setMeta, meta } =
+  const { user, transfers, setTransfers, setMeta, meta } =
     useContext(CommonContext);
   const userSlice = useSelector((state: any) => state.userSlice);
   const role: string = userSlice.user.role;
 
   const refreshData = () => {
-    if (role === "ADMIN") {
-      getSlotRequests({
-        page,
-        limit,
-        setLoading,
-        setMeta,
-        setRequests,
-        searchKey,
-      });
-    } else {
-      getUserRequests({
-        page,
-        limit,
-        setLoading,
-        setMeta,
-        setRequests,
-        searchKey,
-      });
-    }
-  };
+    const fetchFn = role === "ADMIN" ? getTransfers : getUserTransfers;
 
-  const handleRequestApprove = async (requestId: string) => {
-    setApprovalRequestId(requestId);
-    await updateStatus({
-      id: requestId,
-      status: "APPROVED",
+    fetchFn({
+      page,
+      limit,
       setLoading,
-      setStatusChanged: () => {},
+      setMeta,
+      setTransfers,
+      searchKey,
     });
-    setApprovalRequestId(null);
-    setRefreshFlag(true);
   };
 
-  const handleDelete = async (id: string) => {
-    await deleteRequest({ id, setLoading, setIsModalClosed: () => {} });
-    setConfirmDialogId(null);
-    setRefreshFlag(true);
-  };
-
-  const handleRequestRejection = async (requestId: string) => {
-    setRejectRequestId(requestId);
-    await updateStatus({
-      id: requestId,
-      status: "REJECTED",
+  const handleTransferApproval = async (transferId: string) => {
+    setApprovalTransferId(transferId);
+    await approveTransfer({
+      id: transferId,
       setLoading,
-      setStatusChanged: () => {},
     });
-    setRejectRequestId(null);
-    setRefreshFlag(true);
+    setApprovalTransferId(null);
+    refreshData();
+  };
+
+  const handleTransferRejection = async (transferId: string) => {
+    setRejectTransferId(transferId);
+    await rejectTransfer({
+      id: transferId,
+      setLoading,
+    });
+    setRejectTransferId(null);
+    refreshData();
   };
 
   const columns: DataTableColumn[] = [
@@ -102,20 +83,21 @@ const Requests: React.FC = () => {
       accessor: "vehicle.model",
       title: "Model",
     },
+
     {
-      accessor: "slot.location",
-      title: "Parking Slot Location",
-      render: ({ slot }: any) => slot?.location ?? "Not Assigned",
+      accessor: "fromUser",
+      title: "From",
+      render: (row: any) =>
+        `${row.fromUser.firstName} ${row.fromUser.lastName}`,
+    }, //
+    {
+      accessor: "toUser",
+      title: "To",
+      render: (row: any) => `${row.toUser.firstName} ${row.toUser.lastName}`,
     },
     {
-      accessor: "slot.number",
-      title: "Parking Slot Number",
-      render: ({ slot }: any) => slot?.number ?? "Not assigned",
-    },
-    {
-      accessor: "slot.size",
-      title: "Parking Slot Size",
-      render: ({ slot }: any) => slot?.size ?? "Not Specified",
+      accessor: "price",
+      title: "amount",
     },
     {
       accessor: "status",
@@ -150,51 +132,33 @@ const Requests: React.FC = () => {
     {
       accessor: "",
       title: "Actions",
-      render: (request: any) => (
+      render: (transfer: any) => (
         <div className="flex gap-2">
-          {role === "USER" &&
-            (request.status === Status.PENDING ||
-              request.status == Status.REJECTED) && (
-              <>
-                <button
-                  onClick={() => setConfirmDialogId(request.id)}
-                  className="bg-red-500 text-white px-4 py-2 rounded-md"
-                >
-                  Delete
-                </button>
-                {confirmDialogId === request.id && (
-                  <ConfirmDialog
-                    isOpen={true}
-                    onClose={() => setConfirmDialogId(null)}
-                    onConfirm={() => handleDelete(request.id)}
-                    message="Are you sure you want to delete this request?"
-                  />
-                )}
-              </>
-            )}
-          {role === "ADMIN" && request.status === Status.PENDING && (
+          {role === "ADMIN" && transfer.status === Status.PENDING && (
             <>
               <button
-                onClick={() => handleRequestApprove(request.id)}
+                onClick={() => handleTransferApproval(transfer.id)}
                 className={`${
-                  approvalRequestId === request.id
+                  approvalTransferId === transfer.id
                     ? "bg-green-200 cursor-not-allowed"
                     : "bg-green-500"
                 } text-white px-4 py-2 rounded-md`}
-                disabled={approvalRequestId === request.id}
+                disabled={approvalTransferId === transfer.id}
               >
-                {approvalRequestId === request.id ? "Processing..." : "Approve"}
+                {approvalTransferId === transfer.id
+                  ? "Processing..."
+                  : "Approve"}
               </button>
               <button
-                onClick={() => handleRequestRejection(request.id)}
+                onClick={() => handleTransferRejection(transfer.id)}
                 className={`${
-                  rejectRequestId === request.id
+                  rejectTransferId === transfer.id
                     ? "bg-gray-400 cursor-not-allowed"
                     : "bg-yellow-500"
                 } text-white px-4 py-2 rounded-md`}
-                disabled={rejectRequestId === request.id}
+                disabled={rejectTransferId === transfer.id}
               >
-                {rejectRequestId === request.id ? "Processing..." : "Reject"}
+                {rejectTransferId === transfer.id ? "Processing..." : "Reject"}
               </button>
             </>
           )}
@@ -205,20 +169,18 @@ const Requests: React.FC = () => {
 
   useEffect(() => {
     refreshData();
-  }, [page, limit, searchKey, role]);
 
-  useEffect(() => {
-    if (refreshFlag) {
+    if (isModalClosed) {
       refreshData();
-      setRefreshFlag(false);
+      setIsModalClosed(false);
     }
-  }, [refreshFlag]);
+  }, [page, limit, searchKey, isModalClosed]);
 
   return (
     <div className="w-full flex min-h-screen">
       <Sidebar />
       <Helmet>
-        <title>Requests</title>
+        <title>Transfers</title>
       </Helmet>
       <div className="w-full lg:w-11/12 flex flex-col">
         <Navbar />
@@ -230,15 +192,28 @@ const Requests: React.FC = () => {
             <div className="w-full justify-end sm:justify-between flex mb-6 items-center">
               <div>
                 <span className="hidden sm:flex my-8 text-xl">
-                  Your requests
+                  {role === "ADMIN"
+                    ? " here history of all transfers"
+                    : "all transfers you are related to "}
                 </span>
+                {role != "ADMIN" && (
+                  <button
+                    className="text-white bg-primary-blue rounded py-2 px-8 text-lg"
+                    onClick={() => setIsModalOpen(true)}
+                  >
+                    Request vehicle transfer
+                  </button>
+                )}
               </div>
               <div className="bg-white w-11/12 dsm:w-10/12 sm:w-5/12 plg:w-3/12 rounded-3xl flex items-center relative h-12 justify-between">
                 <input
                   placeholder="Search here..."
                   type="text"
                   className="outline-0 rounded-3xl bg-inherit w-10/12 p-2 pl-6"
-                  onChange={(e) => setSearchKey(e.target.value)}
+                  onChange={(e) => {
+                    setSearchKey(e.target.value);
+                    setPage(1);
+                  }}
                 />
                 <button
                   onClick={refreshData}
@@ -249,7 +224,7 @@ const Requests: React.FC = () => {
               </div>
             </div>
             <DataTable
-              records={slotRequests as unknown as Record<string, unknown>[]}
+              records={transfers as unknown as Record<string, unknown>[]}
               columns={columns}
               page={page}
               recordsPerPage={limit}
@@ -271,8 +246,17 @@ const Requests: React.FC = () => {
           </div>
         </div>
       </div>
+      <CreateTransferModal
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setIsModalClosed(true);
+        }}
+        loading={loading}
+        setIsLoading={setLoading}
+      />
     </div>
   );
 };
 
-export default Requests;
+export default Transfers;

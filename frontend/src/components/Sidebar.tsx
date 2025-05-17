@@ -2,7 +2,7 @@
 import { LogoRound } from "@/assets";
 import { logout } from "@/redux/slices/userReducer";
 import React from "react";
-import { BiLogOut } from "react-icons/bi";
+import { BiLogOut, BiTransfer } from "react-icons/bi";
 import { MdDashboard, MdEventAvailable } from "react-icons/md";
 import { FaCar, FaClipboardList } from "react-icons/fa";
 import { useDispatch, useSelector } from "react-redux";
@@ -35,6 +35,11 @@ const Sidebar: React.FC = () => {
       path: "/requests",
       icon: <FaClipboardList size={20} />,
     },
+    {
+      name: "Transfers",
+      path: "/transfers",
+      icon: <BiTransfer size={20} />,
+    },
   ];
   if (role.toLowerCase() === "admin") {
     menuItems.push({
@@ -45,7 +50,7 @@ const Sidebar: React.FC = () => {
   }
 
   return (
-    <div className="w-2/12 hidden smlg:flex flex-col min-h-screen bg-white px-4 py-8 shadow-md">
+    <div className="w-2/12 hidden sm lg:flex flex-col min-h-screen bg-white px-4 py-8 shadow-md">
       <img src={LogoRound} className="w-24 mx-auto mb-4" alt="Logo" />
       <span className="font-bold text-xl text-center text-slate-700 mb-6">
         PMS

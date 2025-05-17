@@ -43,36 +43,39 @@ enum SlotStatus {
 }
 
 model User {
-    id             String           @id @default(uuid())
-    firstName      String           @map("first_name")
-    lastName       String           @map("last_name")
-    email          String           @unique
+    id             String            @id @default(uuid())
+    firstName      String            @map("first_name")
+    lastName       String            @map("last_name")
+    email          String            @unique
     password       String
-    role           Role             @default(USER) @map("role")
-    isVerified     Boolean          @default(false) @map("is_verified")
-    createdAt      DateTime         @default(now()) @map("created_at")
-    updatedAt      DateTime         @updatedAt @map("updated_at")
+    role           Role              @default(USER) @map("role")
+    isVerified     Boolean           @default(false) @map("is_verified")
+    createdAt      DateTime          @default(now()) @map("created_at")
+    updatedAt      DateTime          @updatedAt @map("updated_at")
     ParkingSession ParkingSession[]
     Payment        Payment[]
     Vehicle        Vehicle[]
     SlotRequest    SlotRequest[]
+    transfersFrom  VehicleTransfer[] @relation("TransfersFrom")
+    transfersTo    VehicleTransfer[] @relation("TransfersTo")
 
     @@map("users")
 }
 
 model Vehicle {
-    id          String        @id @default(uuid())
-    plateNumber String        @unique @map("plate_number")
-    vehicleType VehicleType   @map("vehicle_type")
-    size        SlotSize      @map("size")
-    color       String        @map("color")
-    maker       String        @map("maker")
-    model       String        @map("model")
-    userId      String        @map("user_id")
-    user        User          @relation(fields: [userId], references: [id])
-    requests    SlotRequest[]
-    createdAt   DateTime      @default(now()) @map("created_at")
-    updatedAt   DateTime      @updatedAt @map("updated_at")
+    id              String            @id @default(uuid())
+    plateNumber     String            @unique @map("plate_number")
+    vehicleType     VehicleType       @map("vehicle_type")
+    size            SlotSize          @map("size")
+    color           String            @map("color")
+    maker           String            @map("maker")
+    model           String            @map("model")
+    userId          String            @map("user_id")
+    user            User              @relation(fields: [userId], references: [id])
+    requests        SlotRequest[]
+    createdAt       DateTime          @default(now()) @map("created_at")
+    updatedAt       DateTime          @updatedAt @map("updated_at")
+    VehicleTransfer VehicleTransfer[]
 
     @@map("vehicles")
 }
@@ -156,4 +159,29 @@ model Otp {
     updatedAt  DateTime @updatedAt @map("updated_at")
 
     @@map("otps")
+}
+
+enum TransferStatus {
+    PENDING
+    APPROVED
+    REJECTED
+}
+
+model VehicleTransfer {
+    id           String         @id @default(uuid())
+    vehicleId    String         @map("vehicle_id")
+    fromUserId   String         @map("from_user_id")
+    description  String         @map("description")
+    toUserId     String         @map("to_user_id")
+    transferDate DateTime       @default(now()) @map("transfer_date")
+    price        Float?         @map("price")
+    status       TransferStatus @default(PENDING)
+    createdAt    DateTime       @default(now()) @map("created_at")
+    updatedAt    DateTime       @updatedAt @map("updated_at")
+
+    vehicle  Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+    fromUser User    @relation("TransfersFrom", fields: [fromUserId], references: [id])
+    toUser   User    @relation("TransfersTo", fields: [toUserId], references: [id])
+
+    @@map("vehicle_transfers")
 }

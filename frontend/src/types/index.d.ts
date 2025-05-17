@@ -1,7 +1,7 @@
 import {
   PaymentMethod,
   PaymentStatus,
-  RequestStatus,
+  Status,
   SlotSize,
   VehicleType,
 } from "@/enums";
@@ -152,10 +152,10 @@ export interface ISlotRequest extends TimestampAudit {
   userId: string;
   vehicleId: string;
   slotId?: string | null;
-  status: RequestStatus;
+  status: Status;
   slot: ISlot;
   vehicle: IVehicle;
-  status: RequestStatus;
+  status: Status;
 }
 
 export interface CreateVehicleDTO {
@@ -165,4 +165,22 @@ export interface CreateVehicleDTO {
   color: string;
   maker: string;
   model: string;
+}
+
+export interface CreateTransfer {
+  amount: number;
+  vehicleId: string; // sender vehicle ID
+  toUserId: string; // receiver user ID
+  description?: string;
+}
+
+export interface ITransfer {
+  id: string;
+  amount: number;
+  vehicleId: string;
+  toUserId: string;
+  description?: string;
+  status: Status;
+  createdAt: string;
+  updatedAt: string;
 }
