@@ -3,6 +3,7 @@
 import Navbar from "@/components/Navbar";
 import Sidebar from "@/components/Sidebar";
 import CreateTransferModal from "@/components/transfer/CreateTransferModal";
+import ViewTransferModal from "@/components/transfer/ViewTransferModal";
 import { CommonContext } from "@/context";
 import { Status } from "@/enums";
 import {
@@ -11,6 +12,7 @@ import {
   getUserTransfers,
   rejectTransfer,
 } from "@/services/transfer";
+import { ITransfer } from "@/types";
 
 import { DataTable, DataTableColumn } from "mantine-datatable";
 import React, { useContext, useEffect, useState } from "react";
@@ -30,7 +32,10 @@ const Transfers: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
   const [isModalClosed, setIsModalClosed] = useState<boolean>(false);
   const [rejectTransferId, setRejectTransferId] = useState<string | null>(null);
-
+  const [selectedTransfer, setSelectedTransfer] = useState<ITransfer | null>(
+    null
+  );
+  const [isTransferModalOpen, setIsTransferModalOpen] = useState(false);
   const { user, transfers, setTransfers, setMeta, meta } =
     useContext(CommonContext);
   const userSlice = useSelector((state: any) => state.userSlice);
@@ -69,6 +74,11 @@ const Transfers: React.FC = () => {
     refreshData();
   };
 
+  const openTransferModal = (transfer: ITransfer) => {
+    setSelectedTransfer(transfer);
+    setIsTransferModalOpen(true);
+  };
+
   const columns: DataTableColumn[] = [
     {
       accessor: "vehicle.plateNumber",
@@ -97,7 +107,8 @@ const Transfers: React.FC = () => {
     },
     {
       accessor: "price",
-      title: "amount",
+      title: "Amount",
+      render: ({ price }: any) => `$${price}`,
     },
     {
       accessor: "status",
@@ -162,6 +173,12 @@ const Transfers: React.FC = () => {
               </button>
             </>
           )}
+          <button
+            className="bg-primary-blue text-white px-4 py-2 rounded-md"
+            onClick={() => openTransferModal(transfer)}
+          >
+            View
+          </button>
         </div>
       ),
     },
@@ -254,6 +271,11 @@ const Transfers: React.FC = () => {
         }}
         loading={loading}
         setIsLoading={setLoading}
+      />
+      <ViewTransferModal
+        isOpen={isTransferModalOpen}
+        onClose={() => setIsTransferModalOpen(false)}
+        transfer={selectedTransfer}
       />
     </div>
   );

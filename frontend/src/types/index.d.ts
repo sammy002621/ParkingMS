@@ -176,11 +176,13 @@ export interface CreateTransfer {
 
 export interface ITransfer {
   id: string;
-  amount: number;
+  price: number;
   vehicleId: string;
   toUserId: string;
   description?: string;
   status: Status;
   createdAt: string;
   updatedAt: string;
+  fromUser:IUser
+  toUser:IUser
 }

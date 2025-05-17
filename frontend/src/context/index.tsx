@@ -50,3 +50,4 @@ export const CommonProvider = ({ children }: any) => {
     </CommonContext.Provider>
   );
 };
+
