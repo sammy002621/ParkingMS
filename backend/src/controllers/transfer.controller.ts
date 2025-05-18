@@ -70,9 +70,9 @@ const fetchAllTransfers = async (req: Request, res: Response) => {
 
     if (searchKey) {
       whereCondition.OR = [
-        { description: { contains: searchKey as string, mode: "insensitive" } },
-        { fromUserId: { contains: searchKey as string, mode: "insensitive" } },
-        { toUserId: { contains: searchKey as string, mode: "insensitive" } },
+        { description: { contains: searchKey as string, } },
+        { fromUserId: { contains: searchKey as string, } },
+        { toUserId: { contains: searchKey as string,  } },
       ];
     }
 
@@ -211,14 +211,14 @@ const getMyTransfers = async (req: Request, res: Response) => {
             {
               description: {
                 contains: searchKey as string,
-                mode: "insensitive",
+                
               },
             },
             {
               vehicle: {
                 plateNumber: {
                   contains: searchKey as string,
-                  mode: "insensitive",
+                  
                 },
               },
             },

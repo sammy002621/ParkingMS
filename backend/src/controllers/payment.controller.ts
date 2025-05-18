@@ -76,7 +76,7 @@ const fetchAllPayment = async (req: Request, res: Response) => {
     const whereCondition: Prisma.PaymentWhereInput = {};
     if (searchKey) {
       whereCondition.OR = [
-        { sessionId: { contains: searchKey as string, mode: "insensitive" } },
+        { sessionId: { contains: searchKey as string,  } },
       ];
     }
     const payments = await prisma.payment.findMany({

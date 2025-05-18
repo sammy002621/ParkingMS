@@ -33,3 +33,23 @@ export const signIn = async ({
     setLoading(false);
   }
 };
+
+export const verifyOtp = async (otpCode: string) => {
+  try {
+    const response = await api.post("/auth/verify-otp", {
+      otpCode,
+    });
+    toast.success("Email verified successfully");
+
+    return {
+      success: true,
+      message: response.data.message,
+    };
+  } catch (error: any) {
+    return {
+      success: false,
+      message:
+        error?.response?.data?.message || "Failed to verify OTP",
+    };
+  }
+};

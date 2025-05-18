@@ -98,7 +98,7 @@ const fetchAllSessions = async (req: Request, res: Response) => {
     const whereCondition: Prisma.ParkingSessionWhereInput = {};
     if (searchKey) {
       whereCondition.OR = [
-        { plateNumber: { contains: searchKey as string, mode: "insensitive" } },
+        { plateNumber: { contains: searchKey as string } },
       ];
     }
     const sessions = await prisma.parkingSession.findMany({
@@ -192,11 +192,11 @@ const fetchSessionsByUser = async (req: Request, res: Response) => {
     if (searchKey) {
       whereCondition.OR = [
         {
-          plateNumber: { contains: searchKey as string, mode: "insensitive" },
+          plateNumber: { contains: searchKey as string },
         },
         {
           slot: {
-            number: { contains: searchKey as string, mode: "insensitive" },
+            number: { contains: searchKey as string },
           },
         },
       ];

@@ -7,7 +7,7 @@ import { Prisma } from "@prisma/client";
 import { paginator } from "../utils/paginator";
 
 // Validation helper for Rwanda plate numbers (no spaces, uppercase alphanumeric)
-const isValidPlateNumber = (plate: string): boolean => {
+const isPlateNumberValid = (plate: string): boolean => {
   const regex = /^[A-Z0-9]+$/;
   return regex.test(plate);
 };
@@ -23,7 +23,7 @@ const createVehicle = async (req: Request, res: Response) => {
       return ServerResponse.error(res, "All vehicle fields are required");
     }
 
-    if (!isValidPlateNumber(plateNumber)) {
+    if (!isPlateNumberValid(plateNumber)) {
       return ServerResponse.error(res, "Invalid plate number format");
     }
 
@@ -77,9 +77,9 @@ const fetchAllVehicle = async (req: Request, res: Response) => {
     const whereCondition: Prisma.VehicleWhereInput = {};
     if (searchKey) {
       whereCondition.OR = [
-        { plateNumber: { contains: searchKey as string, mode: "insensitive" } },
-        { maker: { contains: searchKey as string, mode: "insensitive" } },
-        { model: { contains: searchKey as string, mode: "insensitive" } },
+        { plateNumber: { contains: searchKey as string,  } },
+        { maker: { contains: searchKey as string,  } },
+        { model: { contains: searchKey as string,  } },
       ];
     }
 
@@ -132,7 +132,7 @@ const updateVehicle = async (req: Request, res: Response) => {
     const { id } = req.params;
     const { vehicleType, plateNumber, size, color, maker, model } = req.body;
 
-    if (plateNumber && !isValidPlateNumber(plateNumber)) {
+    if (plateNumber && !isPlateNumberValid(plateNumber)) {
       return ServerResponse.error(res, "Invalid plate number format");
     }
 
@@ -214,9 +214,9 @@ const fetchAllVehicleByUser = async (req: Request, res: Response) => {
     const whereCondition: Prisma.VehicleWhereInput = {};
     if (searchKey) {
       whereCondition.OR = [
-        { plateNumber: { contains: searchKey as string, mode: "insensitive" } },
-        { maker: { contains: searchKey as string, mode: "insensitive" } },
-        { model: { contains: searchKey as string, mode: "insensitive" } },
+        { plateNumber: { contains: searchKey as string,  } },
+        { maker: { contains: searchKey as string,  } },
+        { model: { contains: searchKey as string,  } },
       ];
     }
     const vehicles = await prisma.vehicle.findMany({

@@ -16,8 +16,8 @@ export const createUser = async ({
     await api.post(url, { ...data });
     toast.success("User created successfully");
     setTimeout(() => {
-      window.location.replace("/auth/login");
-    }, 1000);
+      window.location.replace("/auth/verify-otp");
+    }, 1000);  
   } catch (error: any) {
     error?.response?.data?.message
       ? toast.error(error.response.data.message)

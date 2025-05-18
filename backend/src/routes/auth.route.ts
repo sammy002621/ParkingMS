@@ -10,7 +10,7 @@ authRouter.post(
   [validationMiddleware(LoginDTO)],
   authController.login
 );
-authRouter.put(
+authRouter.post(
   "/verify-otp",
   [validationMiddleware(VerifyOtpDTO)],
   authController.verifyOtp

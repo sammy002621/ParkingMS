@@ -19,7 +19,7 @@ export interface IUser extends TimestampAudit {
   lastName: string;
   email: string;
   password?: string;
-  role: "ADMIN" | "USER";
+  role: "ADMIN" | "USER" | "";
 }
 
 // Vehicle

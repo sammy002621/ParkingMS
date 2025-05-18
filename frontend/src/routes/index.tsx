@@ -2,6 +2,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 import { CommonContext } from "@/context";
 import Layout from "@/layout/Layout";
+import VerifyOtp from "@/pages/auth/otp/VerifyOtp";
 import AdminDashboard from "@/pages/home/AdminDashboard";
 import Profile from "@/pages/profile/Profile";
 import Requests from "@/pages/Requests/Requests";
@@ -66,6 +67,7 @@ const PagesRouter: React.FC<{}> = () => {
             element={isLoggedIn ? <Profile /> : <Navigate to={"/auth/login"} />}
           />
           <Route path="*" element={<NotFound />} />
+          <Route path="/auth/verify-otp" element={<VerifyOtp />} />
         </Routes>
       </Layout>
     </BrowserRouter>

@@ -287,12 +287,12 @@ const listRequests = async (req: Request, res: Response) => {
       where.OR = [
         {
           vehicle: {
-            plateNumber: { contains: searchKey, mode: "insensitive" },
+            plateNumber: { contains: searchKey },
           },
         },
         {
           vehicle: {
-            model: { contains: searchKey, mode: "insensitive" },
+            model: { contains: searchKey },
           },
         },
       ];
@@ -361,12 +361,12 @@ const listUserRequests = async (req: Request, res: Response) => {
       where.OR = [
         {
           vehicle: {
-            plateNumber: { contains: searchKey, mode: "insensitive" },
+            plateNumber: { contains: searchKey },
           },
         },
         {
           vehicle: {
-            model: { contains: searchKey, mode: "insensitive" },
+            model: { contains: searchKey },
           },
         },
       ];

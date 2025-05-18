@@ -1,7 +1,7 @@
 {
-  "name": "PMS",
+  "name": "PARKINGMS",
   "version": "1.0.0",
-  "description": "Library Management System built for RCA",
+  "description": "Parking MS is a service that provides parking management functionalities.",
   "main": "app.ts",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
@@ -17,7 +17,7 @@
     "docker:build": "docker build -t jodos/ne-restful .",
     "docker:run": "docker run -p 5058:5058 jodos/ne-restful"
   },
-  "author": "jodos",
+  "author": "sammy",
   "license": "MIT",
   "dependencies": {
     "@prisma/client": "^5.9.1",

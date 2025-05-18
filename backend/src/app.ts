@@ -24,6 +24,7 @@ app.disable("x-powered-by");
 
 morgan(":method :url :status :res[content-length] - :response-time ms");
 
+
 app.use("/api/v1", router);
 app.use("/api/v1/docs", swaggerUi.serve, swaggerUi.setup(swaggerFile));
 app.use("*", (req, res) => {

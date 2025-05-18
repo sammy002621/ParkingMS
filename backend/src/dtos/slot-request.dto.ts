@@ -17,3 +17,4 @@ export class ApproveRejectSlotRequestDTO {
   @IsEnum(RequestStatus)
   status!: RequestStatus; // APPROVED or REJECTED
 }
+

@@ -4,10 +4,14 @@ import jwt from "jsonwebtoken";
 import prisma from "../prisma/prisma-client";
 import ServerResponse from "../utils/ServerResponse";
 import { sendOtpEmail } from "../utils/email";
+import {config} from "dotenv"
 
+
+config();
 const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
+    console.log("email and password got from frontend",email,password);
     const user = await prisma.user.findUnique({
       where: { email },
     });
@@ -15,11 +19,13 @@ const login = async (req: Request, res: Response) => {
     if (!user.isVerified) return ServerResponse.error(res, "User not verified");
     const isMatch = compareSync(password, user.password);
     if (!isMatch) return ServerResponse.error(res, "Invalid email or password");
+    console.log("after invalid email or password ");
     const token = jwt.sign(
       { id: user.id },
       process.env.JWT_SECRET_KEY as string,
-      { expiresIn: "3d" }
+      { expiresIn: process.env.JWT_EXPIRES_IN }
     );
+    
     return ServerResponse.success(res, "Login successful", { user, token });
   } catch (error) {
     console.log(error);
@@ -30,6 +36,7 @@ const login = async (req: Request, res: Response) => {
 export const verifyOtp = async (req: Request, res: Response) => {
   try {
     const { otpCode } = req.body;
+    console.log("otp received from the frontend", otpCode);
 
     const otp = await prisma.otp.findFirst({
       where: {

@@ -76,7 +76,7 @@ const fetchParkingSlots = async (req: Request, res: Response) => {
 
     if (searchKey) {
       whereCondition.OR = [
-        { number: { contains: searchKey as string, mode: "insensitive" } },
+        { number: { contains: searchKey as string,} },
       ];
     }
 

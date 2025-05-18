@@ -57,9 +57,12 @@ const Profile = () => {
             </h2>
             <ul className="space-y-2 text-gray-700">
               <li>
-                <strong>Email:</strong> {user.email}
+                <strong>email:</strong> {user.email}
               </li>
+
               {/* If you had phone/address, you could add here */}
+            
+        
             </ul>
           </div>
 
